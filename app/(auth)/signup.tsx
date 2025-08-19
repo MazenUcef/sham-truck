@@ -70,6 +70,7 @@ export default function Signup() {
                     setCurrentStep(currentStep + 1);
                 } else {
                     console.log("Final driver submission", data);
+                    router.replace('/(root)/driver/home');
                     // Handle final driver signup (e.g., redirect or further processing)
                 }
             } else {
@@ -93,6 +94,7 @@ export default function Signup() {
     };
 
     const onSignIn = async (data: any) => {
+        router.replace('/(root)/driver/home');
         try {
             // First delete any existing sessions
             console.log('Attempting to sign in with:', data.email,data.password);

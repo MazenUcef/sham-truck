@@ -8,7 +8,7 @@ interface UserProps {
 }
 
 export default function SplashScreen() {
-  const isAuthenticated = true;
+  const isAuthenticated = false;
   const role = "driver";
 
   useEffect(() => {
