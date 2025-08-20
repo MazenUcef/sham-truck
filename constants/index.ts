@@ -4,6 +4,8 @@ export const Images = {
   car2: require("@/assets/images/Auth/car2.png"),
   car3: require("@/assets/images/Auth/car3.png"),
   car4: require("@/assets/images/Auth/car4.png"),
+  emptyImg: require("@/assets/images/driver/emptyimg.png"),
+  userImg: require("@/assets/images/driver/userImg.png"),
 };
 
 
@@ -112,4 +114,130 @@ export const vehicleMockData = [
     dimensions: '6م × 2.5م × 2.5م',
     temperatureRange: '-18°C إلى 4°C'
   }
+];
+
+
+
+
+// Syrian cities dataset
+export const SYRIAN_CITIES = [
+  "حلب",
+  "دمشق",
+  "حمص",
+  "حماة",
+  "اللاذقية",
+  "دير الزور",
+  "الرقة",
+  "إدلب",
+  "طرطوس",
+  "الحسكة",
+  "القامشلي",
+  "درعا",
+  "السويداء",
+  "ريف دمشق",
+];
+
+
+
+export const mockOrders = [
+  {
+    id: 1,
+    from: "13 ش الكورنيش، حلب، سوريا",
+    to: "7 ش التربوي، دمشق، سوريا",
+    weight: "1.5 طن",
+    dateTime: "17:00 - 25/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية"
+  },
+  {
+    id: 2,
+    from: "شارع الجمهورية، حمص، سوريا",
+    to: "شارع الثورة، اللاذقية، سوريا",
+    weight: "2.0 طن",
+    dateTime: "14:00 - 26/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية"
+  },
+  {
+    id: 3,
+    from: "شارع بغداد، دمشق، سوريا",
+    to: "شارع النيل، دير الزور، سوريا",
+    weight: "1.8 طن",
+    dateTime: "15:30 - 27/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية"
+  },
+  {
+    id: 4,
+    from: "شارع الوحدة، طرطوس، سوريا",
+    to: "شارع الشام، حماة، سوريا",
+    weight: "2.5 طن",
+    dateTime: "10:00 - 28/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية"
+  },
+  {
+    id: 5,
+    from: "شارع الرئيسي، إدلب، سوريا",
+    to: "شارع الكورنيش، الحسكة، سوريا",
+    weight: "1.2 طن",
+    dateTime: "12:00 - 29/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية"
+  },
+];
+
+
+
+export const mockOffers = [
+  {
+    id: 1,
+    from: "13 ش الكورنيش، حلب، سوريا",
+    to: "7 ش التربوي، دمشق، سوريا",
+    weight: "1.5 طن",
+    dateTime: "17:00 - 25/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية",
+    status:"pending"
+  },
+  {
+    id: 2,
+    from: "شارع الجمهورية، حمص، سوريا",
+    to: "شارع الثورة، اللاذقية، سوريا",
+    weight: "2.0 طن",
+    dateTime: "14:00 - 26/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية",
+    status:"confirmed"
+  },
+  {
+    id: 3,
+    from: "شارع بغداد، دمشق، سوريا",
+    to: "شارع النيل، دير الزور، سوريا",
+    weight: "1.8 طن",
+    dateTime: "15:30 - 27/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية",
+    status:"expired"
+  },
+  {
+    id: 4,
+    from: "شارع الوحدة، طرطوس، سوريا",
+    to: "شارع الشام، حماة، سوريا",
+    weight: "2.5 طن",
+    dateTime: "10:00 - 28/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية",
+    status:"expired"
+  },
+  {
+    id: 5,
+    from: "شارع الرئيسي، إدلب، سوريا",
+    to: "شارع الكورنيش، الحسكة، سوريا",
+    weight: "1.2 طن",
+    dateTime: "12:00 - 29/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية",
+    status:"expired"
+  },
 ];

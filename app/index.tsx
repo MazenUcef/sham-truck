@@ -8,15 +8,15 @@ interface UserProps {
 }
 
 export default function SplashScreen() {
-  const isAuthenticated = false;
+  const isAuthenticated = true;
   const role = "driver";
 
   useEffect(() => {
     const timer = setTimeout(() => {
       // if (!isAuthenticated) {
-        router.replace("/(auth)")
+        // router.replace("/(auth)")
       // }
-      // router.replace('/(root)/customer/home')
+      router.replace('/(root)/customer/home')
     }, 500);
 
     return () => clearTimeout(timer);

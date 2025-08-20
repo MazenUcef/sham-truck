@@ -1,0 +1,25 @@
+
+import React from 'react';
+import Svg, { Path } from 'react-native-svg';
+import type { SvgProps } from 'react-native-svg';
+
+const ConfirmationStartIcon = (props: SvgProps) => (
+    <Svg
+        width={160}
+        height={160}
+        viewBox="0 0 160 160"
+        fill="none"
+        {...props}
+    >
+        <Path
+            d="M66 100.667L123.5 44.167C125 42.667 126.917 41.667 129 41.667C131.083 41.667 132.917 42.667 134.417 44.167C135.917 45.667 136.917 47.5833 136.917 49.6667C136.917 51.75 135.917 53.6667 134.417 55.167L71.8333 115.667C70.3333 117.167 68.4167 118.167 66 118.167C63.5833 118.167 61.6667 117.167 60.1667 115.667L33.5 86.667C32 85.167 31.0167 83.25 31.0333 81.1667C31.05 79.0833 31.9667 77.1667 33.4667 75.6667C34.9667 74.1667 36.8833 73.1667 38.9667 73.1667C41.05 73.1667 42.9667 74.1667 44.4667 75.6667L66 100.667Z"
+            fill="none"
+            stroke="#F9844A"
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </Svg>
+);
+
+export default ConfirmationStartIcon;

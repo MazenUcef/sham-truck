@@ -8,6 +8,8 @@ import RequestsIcon from "@/assets/icons/Tabs/RequestsIcon";
 import ActiveHomeIcon from "@/assets/icons/Tabs/ActiveHomeIcon";
 import HomeIcon from "@/assets/icons/Tabs/HomeIcon";
 import UserIcon from "@/assets/icons/Tabs/UserIcon";
+import OffersIcon from "@/assets/icons/Driver/OffersIcon";
+import ActiveOfferIcon from "@/assets/icons/Driver/ActiveOffersIcon";
 
 
 
@@ -62,13 +64,13 @@ export default function Layout() {
                                 <View
                                     style={[styles.activeIconContainer]}
                                 >
-                                    <ActiveRequestsIcon />
-                                    <Text style={styles.activeLabelText}>الطلبات</Text>
+                                    <ActiveOfferIcon />
+                                    <Text style={styles.activeLabelText}>العروض</Text>
                                 </View>
                             ) : (
                                 <View style={styles.activeIconContainer}>
-                                    <RequestsIcon />
-                                    <Text style={styles.LabelText}>الطلبات</Text>
+                                    <OffersIcon />
+                                    <Text style={styles.LabelText}>العروض</Text>
                                 </View>
                             )}
                         </View>

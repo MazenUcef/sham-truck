@@ -14,6 +14,7 @@ import { db as database } from '@/api/config';
 import WeightIcon from '@/assets/icons/Customer/WeightIcon';
 import PlusIcon from '@/assets/icons/Customer/PlusIcon';
 import { ID } from 'react-native-appwrite';
+import { OrderDriverCard } from '@/components/customer/OrderDriverCard';
 
 export default function Home() {
   const {
@@ -32,6 +33,15 @@ export default function Home() {
       vehicleTypeId: ''
     }
   });
+  const order = {
+    id: 1,
+    from: "13 ش الكورنيش، حلب، سوريا",
+    to: "7 ش التربوي، دمشق، سوريا",
+    weight: "1.5 طن",
+    dateTime: "17:00 - 25/05/2025",
+    type: "أثاث منزل",
+    vehicle: "شاحنة عادية"
+  };
 
   const [modalVisible, setModalVisible] = useState(false);
   const [date, setDate] = useState(new Date());
@@ -120,12 +130,13 @@ export default function Home() {
   };
 
   return (
-    <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
+    <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84, position: "relative" }}>
+
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1,position:"relative" }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 24, marginBottom: 24 }}>
             <NotificationIcon />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -139,7 +150,22 @@ export default function Home() {
             </View>
           </View>
 
-          <View style={{ flex: 1, backgroundColor: "white", padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
+          {order && (
+            <View style={{ position: "absolute", zIndex: 1000, top: 70, right: 25 }}>
+              <Text style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</Text>
+              <OrderDriverCard
+                type={order.type}
+                vehicle={order.vehicle}
+                from={order.from}
+                to={order.to}
+                weight={order.weight}
+                dateTime={order.dateTime}
+                orderDetails={order}
+              />
+            </View>
+          )}
+
+          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: order ? 170 : 0, paddingTop: order ? 100 : 0,paddingBottom:100 }}>
             <Text style={{ fontWeight: '700', fontSize: 18, lineHeight: 24, alignSelf: "flex-end" }}>إنشاء طلب جديد</Text>
 
             <View style={{ marginTop: 24 }}>
