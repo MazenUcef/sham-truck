@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -10,85 +10,90 @@ import SignInForm from '@/components/auth/SigninForm';
 import CustomerPersonalInfoForm from '@/components/auth/CustomerPersonalInfoForm';
 import { account, db } from '@/api/config';
 import { ID } from 'react-native-appwrite';
+import useAuth from '@/hooks/useAuth';
 
 export default function Signup() {
   const { role } = useLocalSearchParams<{ role: 'driver' | 'customer' }>();
-  console.log(role);
-  
   const [activeTab, setActiveTab] = useState<'signup' | 'login'>('signup');
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const { user, loading, register, login ,logout} = useAuth();
+
   const methods = useForm({
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      phoneNumber: '',
-      vehicleType: '',
-      vehicleTypeId: '',
-      vehicleNumber: '',
-      vehiclePhoto: ''
-    }
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phone: "",
+      vehicleType: "",
+      vehicleTypeId: "",
+      vehicleNumber: "",
+      vehiclePhoto: "",
+    },
   });
-  const { control, handleSubmit, formState: { errors, isValid } } = methods;
+
+  const { control, handleSubmit, formState: { errors } } = methods;
+console.log(role);
 
   const onSubmit = async (data: any) => {
+    console.log("data",data);
+    
     try {
-      // Create Appwrite user account
-      const user = await account.create(
-        ID.unique(),
-        data.email,
-        data.password,
-        data.fullName
+      await register(
+        {
+          email: data.email,
+          password: data.password,
+          name: data.fullName,
+          phone: data.phone,
+        },
+        role as "driver" | "customer"
       );
+      console.log("User created successfully");
+      if (role === "customer") {
+        router.replace("/(root)/customer/home")
+      }else{
+        router.replace("/(root)/driver/home")
+      }
+      
+    } catch (error) {
+      console.error(" Signup failed:", error);
+    }
+  };
 
-      // Store additional data in the respective collection based on role
-      const userData = {
-        userId: user.$id,
-        fullName: data.fullName,
-        email: data.email,
-        phoneNumber: data.phoneNumber,
-        ...(role === 'driver' && {
-          vehicleType: data.vehicleType,
-          vehicleTypeId: data.vehicleTypeId,
-          vehicleNumber: data.vehicleNumber,
-          vehiclePhoto: data.vehiclePhoto
-        })
-      };
+  const onSignIn = async (data: any) => {
+    try {
+      await login({ email: data.email, password: data.password });
+      console.log("Login successful");
+      if (role === "customer") {
+        router.replace("/(root)/customer/home")
+      }else{
 
-      const collectionId = role === 'driver' ? "687366a70018db5a155a" : "6873676000023e919fe5";
-      await db.createDocument(
-        "68724035002cd5c6269d",
-        collectionId,
-        user.$id,
-        userData
-      );
-
-      console.log('User and data created successfully', { user, userData });
-      if (role === 'driver') {
-        router.replace('/(root)/driver/home');
-      } else {
-        router.replace('/customer/home');
+        router.replace("/(root)/driver/home")
       }
     } catch (error) {
-      console.error('Failed to create user or document:', error);
+      console.error(" Login failed:", error);
     }
   };
 
   const onNext = () => {
     if (currentStep === 1 && role === 'driver') {
-      // Validate only personal info fields for step 1
-      const step1Fields = { fullName: methods.getValues('fullName'), email: methods.getValues('email'), password: methods.getValues('password'), confirmPassword: methods.getValues('confirmPassword') };
+
+      const step1Fields = {
+        fullName: methods.getValues('fullName'),
+        email: methods.getValues('email'),
+        password: methods.getValues('password'),
+        confirmPassword: methods.getValues('confirmPassword')
+      };
       const isStep1Valid = Object.values(step1Fields).every(value => value.trim() !== '');
       if (isStep1Valid) {
         setCurrentStep(currentStep + 1);
       } else {
-        console.log('Please fill all personal info fields');
+        Alert.alert('Error', 'Please fill all personal info fields');
       }
     } else if (currentStep === 2 && role === 'driver') {
-      // Validate all fields for final submission
+
       handleSubmit(onSubmit)();
     }
   };
@@ -96,30 +101,20 @@ export default function Signup() {
   const onBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    } else {
+      router.back();
     }
   };
 
-  const onSignIn = async (data: any) => {
-    router.replace('/(root)/driver/home');
-    try {
-      console.log('Attempting to sign in with:', data.email, data.password);
-    //   await account.deleteSession('current');
-      const session = await account.createEmailPasswordSession(data.email, data.password);
-      console.log('Sign in successful', session);
-      router.replace('/(root)/customer/home');
-    } catch (error) {
-      console.error('Sign in failed:', error);
-    }
-  };
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
       <View style={{ flex: 1 }}>
         <View style={{ marginBottom: 40, flexDirection: "row", marginLeft: 24, gap: 90 }}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={onBack}>
             <LeftIcon />
           </TouchableOpacity>
-          <Text style={{ fontWeight: 700, fontSize: 18, lineHeight: 24, color: "white" }}>
+          <Text style={{ fontWeight: "700", fontSize: 18, lineHeight: 24, color: "white" }}>
             {activeTab === 'login' && role === "customer"
               ? 'تسجيل دخول مستخدم'
               : activeTab === 'login' && role === "driver"
@@ -154,7 +149,13 @@ export default function Signup() {
                     contentContainerStyle={{ flexGrow: 1 }}
                     keyboardShouldPersistTaps="handled"
                   >
-                    <CustomerPersonalInfoForm onSubmit={onSubmit} />
+                    <TouchableOpacity onPress={()=>logout()}>
+                      <Text>logout</Text>
+                    </TouchableOpacity>
+                    <CustomerPersonalInfoForm
+                      onSubmit={handleSubmit(onSubmit)}
+                      loading={loading}
+                    />
                   </ScrollView>
                 </View>
               ) : (
@@ -163,8 +164,9 @@ export default function Signup() {
                   errors={errors}
                   showPassword={showPassword}
                   setShowPassword={setShowPassword}
-                  handleSubmit={methods.handleSubmit}
+                  handleSubmit={handleSubmit}
                   onSignIn={onSignIn}
+                  loading={loading}
                 />
               )}
             </FormProvider>
@@ -184,6 +186,7 @@ export default function Signup() {
                       totalSteps={2}
                       onNext={onNext}
                       onBack={onBack}
+                      loading={loading}
                     />
                   </ScrollView>
                 </View>
@@ -193,8 +196,9 @@ export default function Signup() {
                   errors={errors}
                   showPassword={showPassword}
                   setShowPassword={setShowPassword}
-                  handleSubmit={methods.handleSubmit}
+                  handleSubmit={handleSubmit}
                   onSignIn={onSignIn}
+                  loading={loading}
                 />
               )}
             </FormProvider>

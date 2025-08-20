@@ -1,6 +1,6 @@
 import React from 'react';
 import { Controller, useFormContext, FieldError } from 'react-hook-form';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GrayUserIcon from '@/assets/icons/Auth/GrayUserIcon';
 import MessageIcon from '@/assets/icons/Auth/MessageIcon';
@@ -11,9 +11,10 @@ import GoogleIcon from '@/assets/icons/Auth/GoogleIcon';
 
 interface CustomerPersonalInfoFormProps {
   onSubmit: (data: any) => void;
+  loading: boolean; // Add loading prop
 }
 
-export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalInfoFormProps) {
+export default function CustomerPersonalInfoForm({ onSubmit, loading }: CustomerPersonalInfoFormProps) {
     const { control, formState: { errors }, handleSubmit, watch } = useFormContext();
     const [showPassword, setShowPassword] = React.useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
@@ -24,8 +25,8 @@ export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalI
 
     return (
         <>
-            <Text style={{ fontWeight: 500, fontSize: 16, alignSelf: "flex-end" }}>الرجاء استكمال البيانات الشخصية</Text>
-            <Text style={{ fontWeight: 600, fontSize: 12, alignSelf: "flex-end", color: "#878A8E" }}>حتى تتم عملية تسجيلكم كمستخدم بنجاح</Text>
+            <Text style={{ fontWeight: "500", fontSize: 16, alignSelf: "flex-end" }}>الرجاء استكمال البيانات الشخصية</Text>
+            <Text style={{ fontWeight: "600", fontSize: 12, alignSelf: "flex-end", color: "#878A8E" }}>حتى تتم عملية تسجيلكم كمستخدم بنجاح</Text>
             <View style={{ width: "100%" }}>
                 <View style={{ marginTop: 24 }}>
                     {/* Full Name Field */}
@@ -41,6 +42,7 @@ export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalI
                                     onBlur={onBlur}
                                     onChangeText={onChange}
                                     value={value}
+                                    editable={!loading} // Disable when loading
                                 />
                             )}
                             name="fullName"
@@ -71,6 +73,7 @@ export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalI
                                     onBlur={onBlur}
                                     onChangeText={onChange}
                                     value={value}
+                                    editable={!loading} // Disable when loading
                                 />
                             )}
                             name="email"
@@ -99,22 +102,30 @@ export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalI
                                         onChange(text);
                                     }}
                                     value={value}
+                                    editable={!loading} // Disable when loading
                                 />
                             )}
-                            name="phoneNumber"
+                            name="phone"
                         />
                         <PhoneIcon />
                     </View>
-                    {errors.phoneNumber && (
+                    {errors.phone && (
                         <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                            {getErrorMessage(errors.phoneNumber as FieldError)}
+                            {getErrorMessage(errors.phone as FieldError)}
                         </Text>
                     )}
 
                     {/* Password Field */}
                     <View style={{ marginTop: 16, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10 }}>
-                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                            <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="#CED4DA" />
+                        <TouchableOpacity 
+                            onPress={() => setShowPassword(!showPassword)}
+                            disabled={loading} // Disable when loading
+                        >
+                            <Ionicons 
+                                name={showPassword ? 'eye' : 'eye-off'} 
+                                size={20} 
+                                color={loading ? "#A0A0A0" : "#CED4DA"} // Change color when disabled
+                            />
                         </TouchableOpacity>
                         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
                             <Controller
@@ -132,6 +143,7 @@ export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalI
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
+                                        editable={!loading} // Disable when loading
                                     />
                                 )}
                                 name="password"
@@ -147,8 +159,15 @@ export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalI
 
                     {/* Confirm Password Field */}
                     <View style={{ marginTop: 16, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10 }}>
-                        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                            <Ionicons name={showConfirmPassword ? 'eye' : 'eye-off'} size={20} color="#CED4DA" />
+                        <TouchableOpacity 
+                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                            disabled={loading} // Disable when loading
+                        >
+                            <Ionicons 
+                                name={showConfirmPassword ? 'eye' : 'eye-off'} 
+                                size={20} 
+                                color={loading ? "#A0A0A0" : "#CED4DA"} // Change color when disabled
+                            />
                         </TouchableOpacity>
                         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
                             <Controller
@@ -166,6 +185,7 @@ export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalI
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
+                                        editable={!loading} // Disable when loading
                                     />
                                 )}
                                 name="confirmPassword"
@@ -183,30 +203,52 @@ export default function CustomerPersonalInfoForm({ onSubmit }: CustomerPersonalI
                     <TouchableOpacity
                         style={{
                             height: 46,
-                            backgroundColor: "#F9844A",
+                            backgroundColor: loading ? "#CCCCCC" : "#F9844A", // Change color when loading
                             borderRadius: 8,
                             justifyContent: "center",
                             alignItems: "center",
                             gap: 5,
                             flexDirection: "row",
+                            opacity: loading ? 0.7 : 1, // Reduce opacity when loading
                         }}
                         onPress={handleSubmit(onSubmit)}
+                        disabled={loading} // Disable when loading
                     >
-                        <Text style={{ fontWeight: '800', fontSize: 12, color: "white" }}>
-                            تسجيل الحساب
-                        </Text>
-                        <LogoutIcon />
+                        {loading ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <>
+                                <Text style={{ fontWeight: '800', fontSize: 12, color: "white" }}>
+                                    تسجيل الحساب
+                                </Text>
+                                <LogoutIcon />
+                            </>
+                        )}
                     </TouchableOpacity>
+                    
                     <View style={{ marginTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                         <View style={{ width: 136, borderWidth: 1, borderColor: "#E4E4E4" }} />
-                        <Text style={{ fontWeight: 600, fontSize: 10, color: "#878A8E" }}>او المتابعة من خلال</Text>
+                        <Text style={{ fontWeight: "600", fontSize: 10, color: "#878A8E" }}>او المتابعة من خلال</Text>
                         <View style={{ width: 136, borderWidth: 1, borderColor: "#E4E4E4" }} />
                     </View>
+                    
                     <TouchableOpacity
-                        style={{ marginTop: 24, height: 46, flexDirection: "row", gap: 10, borderRadius: 8, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#CED4DA" }}
+                        style={{ 
+                            marginTop: 24, 
+                            height: 46, 
+                            flexDirection: "row", 
+                            gap: 10, 
+                            borderRadius: 8, 
+                            justifyContent: "center", 
+                            alignItems: "center", 
+                            borderWidth: 1, 
+                            borderColor: "#CED4DA",
+                            opacity: loading ? 0.5 : 1 // Reduce opacity when loading
+                        }}
+                        disabled={loading} // Disable when loading
                     >
                         <GoogleIcon />
-                        <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E" }}>تسجيل الدخول عبر</Text>
+                        <Text style={{ fontWeight: "600", fontSize: 12, color: "#878A8E" }}>تسجيل الدخول عبر</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import { Controller, FieldError } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
 import MessageIcon from '@/assets/icons/Auth/MessageIcon';
@@ -9,26 +9,37 @@ import Checkbox from 'expo-checkbox';
 import { useState } from 'react';
 import { router } from 'expo-router';
 
-export default function SignInForm({ control, errors, showPassword, setShowPassword, handleSubmit, onSignIn }: {
+export default function SignInForm({ 
+    control, 
+    errors, 
+    showPassword, 
+    setShowPassword, 
+    handleSubmit, 
+    onSignIn, 
+    loading // Add loading prop
+}: {
     control: any,
     errors: any,
     showPassword: boolean,
     setShowPassword: (value: boolean) => void,
     handleSubmit: any,
-    onSignIn: (data: any) => void
+    onSignIn: (data: any) => void,
+    loading: boolean // Add loading to type definition
 }) {
     const [isChecked, setIsChecked] = useState(false);
+    
     const getErrorMessage = (error: FieldError | undefined): string | null => {
         return error ? error.message || 'هذا الحقل مطلوب' : null;
     };
+    
     return (
         <View style={{ flex: 1, alignItems: "flex-end", marginTop: 24 }}>
             <ScrollView
                 contentContainerStyle={{ flexGrow: 1 }}
                 keyboardShouldPersistTaps="handled"
             >
-                <Text style={{ fontWeight: 500, fontSize: 16, lineHeight: 25, alignSelf: "flex-end" }}>اهلا بعودتك</Text>
-                <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E", alignSelf: "flex-end", marginBottom: 24 }}>يرجى ملء البيانات التالية</Text>
+                <Text style={{ fontWeight: "500", fontSize: 16, lineHeight: 25, alignSelf: "flex-end" }}>اهلا بعودتك</Text>
+                <Text style={{ fontWeight: "600", fontSize: 12, color: "#878A8E", alignSelf: "flex-end", marginBottom: 24 }}>يرجى ملء البيانات التالية</Text>
 
                 {/* Email Field */}
                 <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
@@ -48,6 +59,7 @@ export default function SignInForm({ control, errors, showPassword, setShowPassw
                                 onBlur={onBlur}
                                 onChangeText={onChange}
                                 value={value}
+                                editable={!loading} // Disable when loading
                             />
                         )}
                         name="email"
@@ -62,8 +74,15 @@ export default function SignInForm({ control, errors, showPassword, setShowPassw
 
                 {/* Password Field */}
                 <View style={{ marginTop: 16, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10 }}>
-                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                        <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="#CED4DA" />
+                    <TouchableOpacity 
+                        onPress={() => setShowPassword(!showPassword)}
+                        disabled={loading} // Disable when loading
+                    >
+                        <Ionicons 
+                            name={showPassword ? 'eye' : 'eye-off'} 
+                            size={20} 
+                            color={loading ? "#A0A0A0" : "#CED4DA"} // Change color when disabled
+                        />
                     </TouchableOpacity>
                     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
                         <Controller
@@ -81,6 +100,7 @@ export default function SignInForm({ control, errors, showPassword, setShowPassw
                                     onBlur={onBlur}
                                     onChangeText={onChange}
                                     value={value}
+                                    editable={!loading} // Disable when loading
                                 />
                             )}
                             name="password"
@@ -96,33 +116,58 @@ export default function SignInForm({ control, errors, showPassword, setShowPassw
 
                 {/* Remember Me and Forgot Password */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-                    <TouchableOpacity onPress={() => router.push('/details')}>
-                        <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E" }}>
+                    <TouchableOpacity 
+                        onPress={() => router.push('/details')}
+                        disabled={loading} // Disable when loading
+                    >
+                        <Text style={{ 
+                            fontWeight: "600", 
+                            fontSize: 12, 
+                            color: loading ? "#A0A0A0" : "#878A8E" // Change color when disabled
+                        }}>
                             هل نسيت كلمة المرور ؟
                         </Text>
                     </TouchableOpacity>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E", marginRight: 8 }}>
+                        <Text style={{ 
+                            fontWeight: "600", 
+                            fontSize: 12, 
+                            color: loading ? "#A0A0A0" : "#878A8E" // Change color when disabled
+                        }}>
                             تذكرني
                         </Text>
                         <Checkbox
                             value={isChecked}
                             onValueChange={setIsChecked}
                             color={isChecked ? '#F9844A' : undefined}
-                            style={styles.checkbox}
+                            style={[styles.checkbox, { opacity: loading ? 0.5 : 1 }]} // Reduce opacity when loading
+                            disabled={loading} // Disable when loading
                         />
                     </View>
                 </View>
 
                 {/* Sign In Button */}
                 <TouchableOpacity
-                    style={styles.signInButton}
+                    style={[
+                        styles.signInButton,
+                        { 
+                            backgroundColor: loading ? "#CCCCCC" : "#F9844A", // Change color when loading
+                            opacity: loading ? 0.7 : 1 // Reduce opacity when loading
+                        }
+                    ]}
                     onPress={handleSubmit(onSignIn)}
+                    disabled={loading} // Disable when loading
                 >
-                    <Text style={styles.signInButtonText}>
-                        تسجيل الدخول
-                    </Text>
-                    <LogoutIcon />
+                    {loading ? (
+                        <ActivityIndicator color="white" />
+                    ) : (
+                        <>
+                            <Text style={styles.signInButtonText}>
+                                تسجيل الدخول
+                            </Text>
+                            <LogoutIcon />
+                        </>
+                    )}
                 </TouchableOpacity>
 
                 {/* Divider */}
@@ -133,7 +178,13 @@ export default function SignInForm({ control, errors, showPassword, setShowPassw
                 </View>
 
                 {/* Google Sign In */}
-                <TouchableOpacity style={styles.googleButton}>
+                <TouchableOpacity 
+                    style={[
+                        styles.googleButton,
+                        { opacity: loading ? 0.5 : 1 } // Reduce opacity when loading
+                    ]}
+                    disabled={loading} // Disable when loading
+                >
                     <GoogleIcon />
                     <Text style={styles.googleButtonText}>تسجيل الدخول عبر</Text>
                 </TouchableOpacity>
@@ -144,25 +195,24 @@ export default function SignInForm({ control, errors, showPassword, setShowPassw
 
 const styles = StyleSheet.create({
     checkbox: {
-        marginRight: 8,
         width: 16,
         height: 16,
-        borderWidth: 1,
-        borderColor: '#CBD5E1',
         borderRadius: 4,
+        borderWidth: 1,
+        borderColor: '#CED4DA',
     },
     signInButton: {
-        marginTop: 24,
         height: 46,
         backgroundColor: "#F9844A",
         borderRadius: 8,
         justifyContent: "center",
         alignItems: "center",
+        gap: 5,
         flexDirection: "row",
-        gap: 5
+        marginTop: 24,
     },
     signInButtonText: {
-        fontWeight: '800',
+        fontWeight: "800",
         fontSize: 12,
         color: "white"
     },
@@ -178,7 +228,7 @@ const styles = StyleSheet.create({
         borderColor: "#E4E4E4"
     },
     dividerText: {
-        fontWeight: 600,
+        fontWeight: "600",
         fontSize: 10,
         color: "#878A8E"
     },
@@ -194,7 +244,7 @@ const styles = StyleSheet.create({
         borderColor: "#CED4DA"
     },
     googleButtonText: {
-        fontWeight: 600,
+        fontWeight: "600",
         fontSize: 12,
         color: "#878A8E"
     }

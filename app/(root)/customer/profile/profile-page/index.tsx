@@ -158,7 +158,7 @@ export default function ProfilePage() {
                 />
                 <View style={{ marginBottom: 33, gap: 24 }}>
                     <TouchableOpacity
-                        onPress={() => router.push("/(root)/driver/profile/profile-page/forget-password")}
+                        onPress={() => router.push("/(root)/customer/profile/profile-page/forget-password")}
                         style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
                     >
                         <ToRightIcon />

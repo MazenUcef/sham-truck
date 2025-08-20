@@ -13,7 +13,7 @@ import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import ProductIcon from "@/assets/icons/Customer/OneProcuct";
 import { router } from "expo-router";
 
-export const OrderDriverCard = ({
+export const OfferCustomerCard = ({
   from,
   to,
   weight,
@@ -92,7 +92,7 @@ export const OrderDriverCard = ({
           })
         }
       >
-        <Text style={styles.buttonOutlineText}>عرض التفاصيل</Text>
+        <Text style={styles.buttonOutlineText}>تفاصيل الطلب</Text>
       </TouchableOpacity>
     </View>
   );

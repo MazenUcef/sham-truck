@@ -15,6 +15,9 @@ import WeightIcon from '@/assets/icons/Customer/WeightIcon';
 import PlusIcon from '@/assets/icons/Customer/PlusIcon';
 import { ID } from 'react-native-appwrite';
 import { OrderDriverCard } from '@/components/customer/OrderDriverCard';
+import useOrders from '@/hooks/useOrders';
+import useAuth from '@/hooks/useAuth';
+import { router } from 'expo-router';
 
 export default function Home() {
   const {
@@ -49,6 +52,8 @@ export default function Home() {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { createOrder } = useOrders()
+  const { logout } = useAuth()
 
   const VerticalDashedLine = () => (
     <View style={{ height: 24, width: 1, justifyContent: 'space-between' }}>
@@ -79,8 +84,8 @@ export default function Home() {
     try {
       setIsLoading(true);
       const response = await database.listDocuments(
-        "68724035002cd5c6269d", // Database ID
-        "6896ff68001f1ddeb47b"   // Orders Collection ID
+        "68724035002cd5c6269d",
+        "6896ff68001f1ddeb47b"
       );
       setOrders(response.documents);
       console.log("orders", response.documents);
@@ -112,12 +117,13 @@ export default function Home() {
         items_quantity: '1',
         vehicleTypes: data.vehicleTypeId
       };
-      const res = await database.createDocument(
-        "68724035002cd5c6269d",
-        "6896ff68001f1ddeb47b",
-        ID.unique(),
-        orderData
-      );
+      const res = await createOrder(orderData as any)
+      // await database.createDocument(
+      //   "68724035002cd5c6269d",
+      //   "6896ff68001f1ddeb47b",
+      //   ID.unique(),
+      //   orderData
+      // );
       console.log('res', res);
       console.log('Order created successfully');
     } catch (error) {
@@ -136,7 +142,7 @@ export default function Home() {
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ flex: 1,position:"relative" }}>
+        <View style={{ flex: 1, position: "relative" }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 24, marginBottom: 24 }}>
             <NotificationIcon />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -155,17 +161,20 @@ export default function Home() {
               <Text style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</Text>
               <OrderDriverCard
                 type={order.type}
-                vehicle={order.vehicle}
                 from={order.from}
                 to={order.to}
                 weight={order.weight}
                 dateTime={order.dateTime}
-                orderDetails={order}
               />
             </View>
           )}
-
-          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: order ? 170 : 0, paddingTop: order ? 100 : 0,paddingBottom:100 }}>
+          <TouchableOpacity onPress={() => {
+            logout()
+            router.replace("/(auth)")
+          }}>
+            <Text>Logout</Text>
+          </TouchableOpacity>
+          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: order ? 170 : 0, paddingTop: order ? 100 : 0, paddingBottom: 100 }}>
             <Text style={{ fontWeight: '700', fontSize: 18, lineHeight: 24, alignSelf: "flex-end" }}>إنشاء طلب جديد</Text>
 
             <View style={{ marginTop: 24 }}>

@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 export default function VehicleInfo() {
     const { control, formState: { errors }, setValue, handleSubmit } = useForm({
         defaultValues: {
-            phoneNumber: '',
+            phone: '',
             vehicleType: '',
             vehicleNumber: '',
             vehiclePhoto: '',
@@ -91,13 +91,13 @@ export default function VehicleInfo() {
                                                 value={value}
                                             />
                                         )}
-                                        name="phoneNumber"
+                                        name="phone"
                                     />
                                     <PhoneIcon />
                                 </View>
-                                {errors.phoneNumber && (
+                                {errors.phone && (
                                     <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                                        {getErrorMessage(errors.phoneNumber as FieldError)}
+                                        {getErrorMessage(errors.phone as FieldError)}
                                     </Text>
                                 )}
 

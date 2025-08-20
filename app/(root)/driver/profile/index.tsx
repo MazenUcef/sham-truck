@@ -29,6 +29,7 @@ import TruckIcon from "@/assets/icons/Driver/TruckIcon";
 import PolicyIcon from "@/assets/icons/Driver/PolicyIcon";
 import HelpIcon from "@/assets/icons/Driver/HelpIcon";
 import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
+import useAuth from "@/hooks/useAuth";
 
 
 
@@ -49,7 +50,7 @@ export default function Profile() {
       vehicleTypeId: "",
     },
   });
-
+  const { logout } = useAuth()
   const [modalVisible, setModalVisible] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -96,7 +97,7 @@ export default function Profile() {
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
       <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "flex-end", gap: 85, marginRight: 29 }}>
         <Text style={{ fontWeight: 700, fontSize: 18, lineHeight: 24, color: "white" }}>
-          العروض التي قدمتها
+          الملف الشخصي
         </Text>
         <TouchableOpacity onPress={() => router.back()}>
           <RightIcon />
@@ -168,6 +169,10 @@ export default function Profile() {
         </View>
         <View>
           <TouchableOpacity
+            onPress={() => {
+              logout()
+              router.replace("/(auth)")
+            }}
             style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>

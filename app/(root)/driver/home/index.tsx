@@ -48,7 +48,7 @@ export default function Home() {
    const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [filterCity, setFilterCity] = useState("الكل");
 
-  const { offers, loading, error, createOffer, getOffers } = useOffers();
+  // const { offers, loading, error, createOffer, getOffers } = useOffers();
 
   const fetchOrders = async () => {
     try {
@@ -67,22 +67,22 @@ export default function Home() {
 
   useEffect(() => {
     fetchOrders();
-    getOffers(); // Fetch offers on component mount
+    // getOffers();
   }, []);
 
-  // Filtered orders based on filterCity
+
   const filteredOrders = filterCity === "الكل"
     ? mockOrders
     : mockOrders.filter(order => order.from.includes(filterCity));
 
-  // Handle offer submission from OrderCard
+
   const handleOfferSubmit = async (data: { amount: string }, orderDetails: any) => {
     setIsLoading(true);
     try {
       const offerData = {
         status: 'pending',
         pricing: parseFloat(data.amount),
-        orders: orderDetails.$id, // Assuming order has an $id
+        orders: orderDetails.$id, 
         order_from: orderDetails.from,
         order_to: orderDetails.to,
         order_date: new Date(orderDetails.dateTime).toISOString(),
@@ -90,7 +90,7 @@ export default function Home() {
         weight: parseFloat(orderDetails.weight),
         vehicleTypes: orderDetails.vehicleTypeId,
       };
-      await createOffer(offerData);
+      // await createOffer(offerData);
       setModalVisible(false);
       setConfirmationVisible(true);
     } catch (err) {

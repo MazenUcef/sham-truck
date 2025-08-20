@@ -5,7 +5,7 @@ import { Account, Client, Databases, Graphql } from 'react-native-appwrite';
 const APPWRITE_PLATFORM = "com.shamTruck.shamTruck";
 const APPWRITE_PROJECT_ID = "68717034002ea25cabc2";
 const APPWRITE_URL = "https://fra.cloud.appwrite.io/v1";
-const APPWRITE_DATABASE_ID = Constants.expoConfig?.extra?.APPWRITE_DATABASE_ID || "68724035002cd5c6269d";
+const APPWRITE_DATABASE_ID = "68724035002cd5c6269d";
 
 // Validate that all required environment variables are present
 if (!APPWRITE_URL || !APPWRITE_PROJECT_ID || !APPWRITE_PLATFORM || !APPWRITE_DATABASE_ID) {
