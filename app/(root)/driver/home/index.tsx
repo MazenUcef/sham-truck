@@ -1,4 +1,3 @@
-import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -11,16 +10,22 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { db as database } from "@/api/config";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { getAllOrders, clearError as clearOrdersError } from "@/redux/slices/OrdersSlice";
+import { clearError, createOffer } from "@/redux/slices/OfferSlice";
+import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import LocationPinIcon from "@/assets/icons/Driver/PositionIcon";
 import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
 import FilterIcon from "@/assets/icons/Driver/FilterIcon";
-import { Images, mockOrders, SYRIAN_CITIES } from "@/constants";
+import { Images, SYRIAN_CITIES } from "@/constants";
 import { OrderCard } from "@/components/driver/OrderCard";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-
-
 
 export default function Home() {
   const {
@@ -39,69 +44,121 @@ export default function Home() {
       vehicleTypeId: "",
     },
   });
-  const {user,role} = useSelector((state:RootState)=>state.auth)
-console.log(user);
-console.log(role);
+
+  const { user, role } = useSelector((state: RootState) => state.auth);
+  const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
+  const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
+  const dispatch = useDispatch<AppDispatch>();
+
+  console.log("User:", user);
+  console.log("Role:", role);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedCity, setSelectedCity] = useState("حلب");
   const [searchText, setSearchText] = useState("");
   const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
-   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [filterCity, setFilterCity] = useState("الكل");
 
-  // const { offers, loading, error, createOffer, getOffers } = useOffers();
+  useEffect(() => {
+    dispatch(getAllOrders());
+  }, [dispatch]);
 
-  const fetchOrders = async () => {
+  useEffect(() => {
+    if (ordersError) {
+      console.error("Orders error:", ordersError);
+      dispatch(clearOrdersError());
+    }
+    if (offersError) {
+      console.error("Offers error:", offersError);
+      dispatch(clearError());
+    }
+  }, [ordersError, offersError, dispatch]);
+
+  const filteredOrders = filterCity === "الكل"
+    ? orders
+    : orders.filter((order) => order.from_location.includes(filterCity));
+
+  const handleOfferSubmit = async (data: { amount: number }, orderDetails: any) => {
     try {
-      setIsLoading(true);
-      const response = await database.listDocuments(
-        "68724035002cd5c6269d",
-        "6896ff68001f1ddeb47b"
-      );
-      setOrders(response.documents);
+      const offerData = {
+        order_id: orderDetails._id,
+        price: data.amount,
+        notes: "I can pick up within 1 hour",
+      };
+      await dispatch(createOffer(offerData)).unwrap();
+      // Reset offersStatus after successful submission
+      dispatch(clearError()); // Assuming clearError resets status to "idle"
     } catch (error) {
-      console.error("Failed to fetch orders:", error);
+      console.error("Failed to submit offer:", error);
     } finally {
-      setIsLoading(false);
+      setModalVisible(false);
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
-    // getOffers();
-  }, []);
+  // Skeleton Loader Component (unchanged)
+  const SkeletonCard = () => {
+    const opacity = useSharedValue(0.3);
 
+    useEffect(() => {
+      opacity.value = withTiming(1, {
+        duration: 1000,
+        easing: Easing.inOut(Easing.ease),
+      });
+      const interval = setInterval(() => {
+        opacity.value = withTiming(opacity.value === 0.3 ? 1 : 0.3, {
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }, [opacity]);
 
-  const filteredOrders = filterCity === "الكل"
-    ? mockOrders
-    : mockOrders.filter(order => order.from.includes(filterCity));
+    const animatedStyle = useAnimatedStyle(() => ({
+      opacity: opacity.value,
+    }));
 
-
-  const handleOfferSubmit = async (data: { amount: string }, orderDetails: any) => {
-    setIsLoading(true);
-    try {
-      const offerData = {
-        status: 'pending',
-        pricing: parseFloat(data.amount),
-        orders: orderDetails.$id, 
-        order_from: orderDetails.from,
-        order_to: orderDetails.to,
-        order_date: new Date(orderDetails.dateTime).toISOString(),
-        order_time: new Date(orderDetails.dateTime).toISOString(),
-        weight: parseFloat(orderDetails.weight),
-        vehicleTypes: orderDetails.vehicleTypeId,
-      };
-      // await createOffer(offerData);
-      setModalVisible(false);
-      setConfirmationVisible(true);
-    } catch (err) {
-      console.error("Failed to create offer:", err);
-    } finally {
-      setIsLoading(false);
-    }
+    return (
+      <Animated.View
+        style={[
+          styles.skeletonCard,
+          animatedStyle,
+          {
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: "#E4E4E4",
+            paddingVertical: 16,
+            paddingHorizontal: 20,
+            marginBottom: 12,
+            backgroundColor: "white",
+          },
+        ]}
+      >
+        <View style={{ flexDirection: "column", alignItems: "flex-end" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={styles.skeletonText} />
+            <View style={styles.skeletonIcon} />
+          </View>
+          <View style={{ marginRight: 7.2, marginVertical: 8 }}>
+            <View style={styles.skeletonDivider} />
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={styles.skeletonText} />
+            <View style={styles.skeletonIcon} />
+          </View>
+        </View>
+        <View style={[styles.rowBetween, { marginTop: 17 }]}>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={styles.skeletonText} />
+            <View style={styles.skeletonIcon} />
+          </View>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={styles.skeletonText} />
+            <View style={styles.skeletonIcon} />
+          </View>
+        </View>
+        <View style={[styles.buttonOutline, { backgroundColor: "#E4E4E4" }]} />
+      </Animated.View>
+    );
   };
 
   return (
@@ -121,9 +178,7 @@ console.log(role);
           style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
         >
           <ArrowToBottomIcon />
-          <Text
-            style={{ fontWeight: "700", fontSize: 16, color: "#F6F6F6" }}
-          >
+          <Text style={{ fontWeight: "700", fontSize: 16, color: "#F6F6F6" }}>
             {selectedCity} ، سوريا
           </Text>
           <LocationPinIcon />
@@ -152,7 +207,9 @@ console.log(role);
               onChangeText={setSearchText}
             />
             <FlatList
-              data={SYRIAN_CITIES}
+              data={SYRIAN_CITIES.filter((city) =>
+                city.includes(searchText)
+              )}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -237,14 +294,6 @@ console.log(role);
                     <Text style={{ textAlign: "right" }}>{item}</Text>
                   </TouchableOpacity>
                 )}
-                ListEmptyComponent={
-                  <View style={{ alignItems: "center", paddingTop: 166 }}>
-                    <Image
-                      source={Images.emptyImg}
-                      style={{ marginBottom: 24 }}
-                    />
-                  </View>
-                }
               />
               <TouchableOpacity
                 style={styles.closeButton}
@@ -256,23 +305,37 @@ console.log(role);
           </View>
         </Modal>
 
-        <FlatList
-          data={filteredOrders}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <OrderCard
-              type={item.type}
-              vehicle={item.vehicle}
-              from={item.from}
-              to={item.to}
-              weight={item.weight}
-              dateTime={item.dateTime}
-              onOfferSubmit={handleOfferSubmit}
-              orderDetails={item}
-            />
-          )}
-          style={{ marginTop: 24 }}
-        />
+        {ordersStatus === "loading" ? (
+          <FlatList
+            data={[1, 2, 3]}
+            keyExtractor={(item) => item.toString()}
+            renderItem={() => <SkeletonCard />}
+            style={{ marginTop: 24 }}
+          />
+        ) : (
+          <FlatList
+            data={filteredOrders}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <OrderCard
+                type={item.vehicle_type.type}
+                vehicle={item.vehicle_type.description}
+                from={item.from_location}
+                to={item.to_location}
+                weight={item.weight_or_volume}
+                dateTime={item.date_time_transport}
+                onOfferSubmit={handleOfferSubmit}
+                orderDetails={item}
+              />
+            )}
+            ListEmptyComponent={
+              <View style={{ alignItems: "center", paddingTop: 166 }}>
+                <Image source={Images.emptyImg} style={{ marginBottom: 24 }} />
+              </View>
+            }
+            style={{ marginTop: 24 }}
+          />
+        )}
       </View>
     </View>
   );
@@ -357,5 +420,45 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 12,
     color: "white",
+  },
+  skeletonCard: {
+    flexDirection: "column",
+    alignItems: "flex-end",
+  },
+  skeletonText: {
+    width: 100,
+    height: 16,
+    backgroundColor: "#E4E4E4",
+    borderRadius: 4,
+  },
+  skeletonIcon: {
+    width: 16,
+    height: 16,
+    backgroundColor: "#E4E4E4",
+    borderRadius: 4,
+  },
+  skeletonDivider: {
+    width: 20,
+    height: 20,
+    backgroundColor: "#E4E4E4",
+    borderRadius: 4,
+  },
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  buttonOutline: {
+    borderWidth: 1,
+    borderColor: "#0077B6",
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+    width: "100%",
+    marginTop: 16,
+  },
+  buttonOutlineText: {
+    color: "#0077B6",
+    fontWeight: "600",
   },
 });

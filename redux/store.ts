@@ -3,6 +3,8 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import authReducer from "./slices/AuthSlice";
 import vehicleTypesReducer from "./slices/VehicleTypesSlice";
+import ordersReducer from "./slices/OrdersSlice";
+import offersReducer from "./slices/OfferSlice";
 
 const persistConfig = {
   key: "root",
@@ -14,6 +16,8 @@ const persistConfig = {
 const rootReducer = combineReducers({
   auth: authReducer,
   vehicleTypes: vehicleTypesReducer,
+  orders: ordersReducer,
+  offers: offersReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
