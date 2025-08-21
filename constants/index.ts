@@ -6,7 +6,7 @@ export const Images = {
   car4: require("@/assets/images/Auth/car4.png"),
   emptyImg: require("@/assets/images/driver/emptyimg.png"),
   userImg: require("@/assets/images/driver/userImg.png"),
-  man: require("@/assets/images/customer/man.png")
+  man: require("@/assets/images/user/man.png")
 };
 
 

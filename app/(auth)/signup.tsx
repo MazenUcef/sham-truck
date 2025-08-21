@@ -2,22 +2,27 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'rea
 import React, { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
 import LeftIcon from '@/assets/icons/Auth/LeftIcon';
-import PersonalInfoForm from '@/components/auth/PersonalInfoForm';
 import FormStepper from '@/components/auth/FormStepper';
 import VehicleInfo from '@/components/auth/VehicleInfo';
 import SignInForm from '@/components/auth/SigninForm';
-import CustomerPersonalInfoForm from '@/components/auth/CustomerPersonalInfoForm';
-import { account, db } from '@/api/config';
-import { ID } from 'react-native-appwrite';
-import useAuth from '@/hooks/useAuth';
+import type { UserRegistration, DriverRegistration, LoginCredentials } from '@/types';
+import { AppDispatch, RootState } from '@/redux/store';
+import { signin, signupDriver, signupUser } from '@/redux/slices/AuthSlice';
+import { createDriverFormData } from '@/utils/CreateDriverFormData';
+import PersonalInfoForm from '@/components/auth/PersonalInfoForm';
+import UserPersonalInfoForm from '@/components/auth/UserPersonalInfoForm';
 
 export default function Signup() {
-  const { role } = useLocalSearchParams<{ role: 'driver' | 'customer' }>();
+  const { role } = useLocalSearchParams<{ role: 'driver' | 'user' }>();
   const [activeTab, setActiveTab] = useState<'signup' | 'login'>('signup');
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
-  const { user, loading, register, login ,logout} = useAuth();
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { status, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const loading = status === 'loading';
 
   const methods = useForm({
     mode: "onChange",
@@ -26,66 +31,84 @@ export default function Signup() {
       email: "",
       password: "",
       confirmPassword: "",
-      phone: "",
+      phoneNumber: "",
       vehicleType: "",
-      vehicleTypeId: "",
       vehicleNumber: "",
-      vehiclePhoto: "",
+      vehiclePhoto: null as File | null,
     },
   });
 
-  const { control, handleSubmit, formState: { errors } } = methods;
-console.log(role);
+  const { control, handleSubmit, formState: { errors }, getValues } = methods;
 
   const onSubmit = async (data: any) => {
-    console.log("data",data);
-    
+    console.log(data);
+
     try {
-      await register(
-        {
+      if (role === 'user') {
+        // user registration
+        const userData: UserRegistration = {
+          fullName: data.fullName,
           email: data.email,
           password: data.password,
-          name: data.fullName,
-          phone: data.phone,
-        },
-        role as "driver" | "customer"
-      );
-      console.log("User created successfully");
-      if (role === "customer") {
-        router.replace("/(root)/customer/home")
-      }else{
-        router.replace("/(root)/driver/home")
+          phoneNumber: data.phoneNumber,
+          role: "user"
+        };
+
+        await dispatch(signupUser(userData)).unwrap();
+        Alert.alert('Success', 'Account created successfully!');
+        router.replace('/(root)/user/home');
+
+      } else if (role === 'driver') {
+        console.log("from driverData",data.vehicleTypeId);
+        
+        const driverData: DriverRegistration = {
+          fullName: data.fullName,
+          email: data.email,
+          password: data.password,
+          phoneNumber: data.phoneNumber,
+          vehicleNumber: data.vehicleNumber,
+          vehicleType: data.vehicleTypeId,
+          photo: data.vehiclePhoto,
+          role:"driver",
+        };
+        console.log("driverData",driverData);
+        
+
+        const formData = createDriverFormData(driverData);
+        await dispatch(signupDriver(formData)).unwrap();
+        Alert.alert('Success', 'Driver account created successfully!');
+        router.replace('/(root)/driver/home');
       }
-      
-    } catch (error) {
-      console.error(" Signup failed:", error);
+    } catch (error: any) {
+      Alert.alert('Error', error || 'Registration failed');
     }
   };
 
-  const onSignIn = async (data: any) => {
+  const onSignIn = async (data: LoginCredentials) => {
     try {
-      await login({ email: data.email, password: data.password });
-      console.log("Login successful");
-      if (role === "customer") {
-        router.replace("/(root)/customer/home")
-      }else{
+      const credentials: LoginCredentials = {
+        email: data.email,
+        password: data.password,
+        role: role || 'user',
+      };
 
-        router.replace("/(root)/driver/home")
-      }
-    } catch (error) {
-      console.error(" Login failed:", error);
+      await dispatch(signin(credentials)).unwrap();
+      Alert.alert('Success', 'Logged in successfully!');
+      router.replace(`/(root)/${role}/home`);
+    } catch (error: any) {
+      Alert.alert('Error', error || 'Login failed');
     }
   };
 
   const onNext = () => {
     if (currentStep === 1 && role === 'driver') {
-
       const step1Fields = {
-        fullName: methods.getValues('fullName'),
-        email: methods.getValues('email'),
-        password: methods.getValues('password'),
-        confirmPassword: methods.getValues('confirmPassword')
+        fullName: getValues('fullName'),
+        email: getValues('email'),
+        password: getValues('password'),
+        confirmPassword: getValues('confirmPassword')
       };
+
       const isStep1Valid = Object.values(step1Fields).every(value => value.trim() !== '');
       if (isStep1Valid) {
         setCurrentStep(currentStep + 1);
@@ -93,7 +116,6 @@ console.log(role);
         Alert.alert('Error', 'Please fill all personal info fields');
       }
     } else if (currentStep === 2 && role === 'driver') {
-
       handleSubmit(onSubmit)();
     }
   };
@@ -106,6 +128,14 @@ console.log(role);
     }
   };
 
+  // Show error alerts when they occur
+  React.useEffect(() => {
+    if (error) {
+      Alert.alert('Error', error);
+    }
+  }, [error]);
+
+
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -115,11 +145,11 @@ console.log(role);
             <LeftIcon />
           </TouchableOpacity>
           <Text style={{ fontWeight: "700", fontSize: 18, lineHeight: 24, color: "white" }}>
-            {activeTab === 'login' && role === "customer"
+            {activeTab === 'login' && role === "user"
               ? 'تسجيل دخول مستخدم'
               : activeTab === 'login' && role === "driver"
                 ? 'تسجيل دخول سائق'
-                : activeTab === 'signup' && role === "customer"
+                : activeTab === 'signup' && role === "user"
                   ? 'انشاء حساب مستخدم'
                   : 'انشاء حساب سائق'}
           </Text>
@@ -141,7 +171,7 @@ console.log(role);
             </TouchableOpacity>
           </View>
 
-          {role === "customer" ? (
+          {role === "user" ? (
             <FormProvider {...methods}>
               {activeTab === 'signup' ? (
                 <View style={{ flex: 1, alignItems: "flex-end", marginTop: 24 }}>
@@ -149,12 +179,10 @@ console.log(role);
                     contentContainerStyle={{ flexGrow: 1 }}
                     keyboardShouldPersistTaps="handled"
                   >
-                    <TouchableOpacity onPress={()=>logout()}>
-                      <Text>logout</Text>
-                    </TouchableOpacity>
-                    <CustomerPersonalInfoForm
+                    <UserPersonalInfoForm
                       onSubmit={handleSubmit(onSubmit)}
                       loading={loading}
+
                     />
                   </ScrollView>
                 </View>
@@ -167,6 +195,7 @@ console.log(role);
                   handleSubmit={handleSubmit}
                   onSignIn={onSignIn}
                   loading={loading}
+                  role={role}
                 />
               )}
             </FormProvider>
@@ -199,6 +228,7 @@ console.log(role);
                   handleSubmit={handleSubmit}
                   onSignIn={onSignIn}
                   loading={loading}
+                  role={role}
                 />
               )}
             </FormProvider>

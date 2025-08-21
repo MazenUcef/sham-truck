@@ -1,4 +1,4 @@
-import NotificationIcon from "@/assets/icons/Customer/NotificationIcon";
+import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -29,7 +29,9 @@ import TruckIcon from "@/assets/icons/Driver/TruckIcon";
 import PolicyIcon from "@/assets/icons/Driver/PolicyIcon";
 import HelpIcon from "@/assets/icons/Driver/HelpIcon";
 import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
-import useAuth from "@/hooks/useAuth";
+import { logout } from "@/redux/slices/AuthSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/redux/store";
 
 
 
@@ -50,7 +52,6 @@ export default function Profile() {
       vehicleTypeId: "",
     },
   });
-  const { logout } = useAuth()
   const [modalVisible, setModalVisible] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +59,7 @@ export default function Profile() {
   const [searchText, setSearchText] = useState("");
   const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
   const [filterCity, setFilterCity] = useState("الكل");
-
+  const dispatch = useDispatch<AppDispatch>()
 
 
   const fetchOrders = async () => {
@@ -169,8 +170,8 @@ export default function Profile() {
         </View>
         <View>
           <TouchableOpacity
-            onPress={() => {
-              logout()
+            onPress={async () => {
+              await dispatch(logout())
               router.replace("/(auth)")
             }}
             style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}

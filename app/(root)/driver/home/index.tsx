@@ -1,4 +1,4 @@
-import NotificationIcon from "@/assets/icons/Customer/NotificationIcon";
+import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -17,7 +17,8 @@ import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
 import FilterIcon from "@/assets/icons/Driver/FilterIcon";
 import { Images, mockOrders, SYRIAN_CITIES } from "@/constants";
 import { OrderCard } from "@/components/driver/OrderCard";
-import useOffers from "@/hooks/useOffers";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 
 
@@ -38,6 +39,9 @@ export default function Home() {
       vehicleTypeId: "",
     },
   });
+  const {user,role} = useSelector((state:RootState)=>state.auth)
+console.log(user);
+console.log(role);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);

@@ -6,20 +6,12 @@ import {
   Text,
   View,
 } from "react-native";
-import { OfferCustomerCard } from "@/components/customer/OfferCustomerCard";
+import { OfferuserCard } from "@/components/user/OfferuserCard";
 import { Images } from "@/constants";
-import useOrders, { Order } from "@/hooks/useOrders";
 
 const Requests = () => {
-  const { orders, loading, error, fetchOrders } = useOrders();
 
-  useEffect(() => {
-    // Fetch orders for the current customer (assuming customerId is available)
-    // Replace 'currentCustomerId' with actual customer ID from auth context or similar
-    fetchOrders({ customerId: 'currentCustomerId' });
-  }, []);
-
-  const renderOrderItem = ({ item }: { item: Order }) => (
+  const renderOrderItem = ({ item }: { item: any }) => (
     <View>
       <Text
         style={{
@@ -31,7 +23,7 @@ const Requests = () => {
       >
         طلباتك
       </Text>
-      <OfferCustomerCard
+      <OfferuserCard
         type={item.items[0]?.name || "غير محدد"}
         from={item.pickupLocation.address}
         to={item.deliveryLocation.address}
@@ -71,7 +63,7 @@ const Requests = () => {
           borderTopRightRadius: 16,
         }}
       >
-        {loading ? (
+        {/* {loading ? (
           <View style={{ alignItems: "center", paddingTop: 166 }}>
             <Text style={{ fontSize: 18, color: "#878A8E", fontWeight: 700 }}>
               جارٍ التحميل...
@@ -99,7 +91,7 @@ const Requests = () => {
               </View>
             }
           />
-        )}
+        )} */}
       </View>
     </View>
   );

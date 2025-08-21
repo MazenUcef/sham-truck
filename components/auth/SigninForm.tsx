@@ -9,14 +9,15 @@ import Checkbox from 'expo-checkbox';
 import { useState } from 'react';
 import { router } from 'expo-router';
 
-export default function SignInForm({ 
-    control, 
-    errors, 
-    showPassword, 
-    setShowPassword, 
-    handleSubmit, 
-    onSignIn, 
-    loading // Add loading prop
+export default function SignInForm({
+    control,
+    errors,
+    showPassword,
+    setShowPassword,
+    handleSubmit,
+    onSignIn,
+    loading,
+    role
 }: {
     control: any,
     errors: any,
@@ -24,14 +25,15 @@ export default function SignInForm({
     setShowPassword: (value: boolean) => void,
     handleSubmit: any,
     onSignIn: (data: any) => void,
-    loading: boolean // Add loading to type definition
+    loading: boolean,
+    role: string
 }) {
     const [isChecked, setIsChecked] = useState(false);
-    
+
     const getErrorMessage = (error: FieldError | undefined): string | null => {
         return error ? error.message || 'هذا الحقل مطلوب' : null;
     };
-    
+
     return (
         <View style={{ flex: 1, alignItems: "flex-end", marginTop: 24 }}>
             <ScrollView
@@ -74,13 +76,13 @@ export default function SignInForm({
 
                 {/* Password Field */}
                 <View style={{ marginTop: 16, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10 }}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => setShowPassword(!showPassword)}
                         disabled={loading} // Disable when loading
                     >
-                        <Ionicons 
-                            name={showPassword ? 'eye' : 'eye-off'} 
-                            size={20} 
+                        <Ionicons
+                            name={showPassword ? 'eye' : 'eye-off'}
+                            size={20}
                             color={loading ? "#A0A0A0" : "#CED4DA"} // Change color when disabled
                         />
                     </TouchableOpacity>
@@ -116,22 +118,22 @@ export default function SignInForm({
 
                 {/* Remember Me and Forgot Password */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => router.push('/details')}
                         disabled={loading} // Disable when loading
                     >
-                        <Text style={{ 
-                            fontWeight: "600", 
-                            fontSize: 12, 
+                        <Text style={{
+                            fontWeight: "600",
+                            fontSize: 12,
                             color: loading ? "#A0A0A0" : "#878A8E" // Change color when disabled
                         }}>
                             هل نسيت كلمة المرور ؟
                         </Text>
                     </TouchableOpacity>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={{ 
-                            fontWeight: "600", 
-                            fontSize: 12, 
+                        <Text style={{
+                            fontWeight: "600",
+                            fontSize: 12,
                             color: loading ? "#A0A0A0" : "#878A8E" // Change color when disabled
                         }}>
                             تذكرني
@@ -150,7 +152,7 @@ export default function SignInForm({
                 <TouchableOpacity
                     style={[
                         styles.signInButton,
-                        { 
+                        {
                             backgroundColor: loading ? "#CCCCCC" : "#F9844A", // Change color when loading
                             opacity: loading ? 0.7 : 1 // Reduce opacity when loading
                         }
@@ -178,7 +180,7 @@ export default function SignInForm({
                 </View>
 
                 {/* Google Sign In */}
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={[
                         styles.googleButton,
                         { opacity: loading ? 0.5 : 1 } // Reduce opacity when loading

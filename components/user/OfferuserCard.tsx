@@ -10,10 +10,10 @@ import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
 import DashedDividerIcon from "@/assets/icons/Driver/DashedDivider";
 import PositionIcon from "@/assets/icons/Driver/PositionIcon";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
-import ProductIcon from "@/assets/icons/Customer/OneProcuct";
+import ProductIcon from "@/assets/icons/user/OneProcuct";
 import { router } from "expo-router";
 
-export const OrderDriverCard = ({
+export const OfferuserCard = ({
   from,
   to,
   weight,
@@ -87,12 +87,12 @@ export const OrderDriverCard = ({
         style={styles.buttonOutline}
         onPress={() =>
           router.push({
-            pathname: "/customer/home/order-details/[id]",
+            pathname: "/user/home/order-details/[id]",
             params: { id: 1233 },
           })
         }
       >
-        <Text style={styles.buttonOutlineText}>عرض التفاصيل</Text>
+        <Text style={styles.buttonOutlineText}>تفاصيل الطلب</Text>
       </TouchableOpacity>
     </View>
   );

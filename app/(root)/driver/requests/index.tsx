@@ -1,4 +1,4 @@
-import NotificationIcon from "@/assets/icons/Customer/NotificationIcon";
+import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {

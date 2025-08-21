@@ -4,9 +4,14 @@ import { Images } from '@/constants'
 import UserIcon from '@/assets/icons/Auth/UserIcon'
 import AutoIcon from '@/assets/icons/Auth/AutoIcon'
 import { router } from 'expo-router'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/redux/store'
 
 export default function Auth() {
-    const handlePress = (role: 'driver' | 'customer') => {
+    const { isAuthenticated ,user} = useSelector((state: RootState) => state.auth)
+    console.log(isAuthenticated,user);
+    
+    const handlePress = (role: 'driver' | 'user') => {
         router.push({
             pathname: '/(auth)/signup',
             params: { role }
@@ -26,7 +31,7 @@ export default function Auth() {
                 </View>
                 <View style={{ marginTop: 40, width: "100%", gap: 20 }}>
                     <TouchableOpacity
-                        onPress={() => handlePress('customer')}
+                        onPress={() => handlePress('user')}
                         style={{ height: 56, borderRadius: 8, gap: 10, backgroundColor: "#0077B6", borderWidth: 1, flexDirection: "row", justifyContent: "center", alignItems: "center", borderColor: "#A5A7AA" }}
                     >
                         <Text style={{ fontWeight: "800", fontSize: 14, color: "white" }}>تسجيل حساب عميل</Text>

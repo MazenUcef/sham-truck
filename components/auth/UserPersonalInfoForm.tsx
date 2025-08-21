@@ -9,12 +9,12 @@ import PhoneIcon from '@/assets/icons/Auth/PhoneIcon';
 import LogoutIcon from '@/assets/icons/Auth/LogoutIcon';
 import GoogleIcon from '@/assets/icons/Auth/GoogleIcon';
 
-interface CustomerPersonalInfoFormProps {
+interface UserPersonalInfoFormProps {
   onSubmit: (data: any) => void;
   loading: boolean; // Add loading prop
 }
 
-export default function CustomerPersonalInfoForm({ onSubmit, loading }: CustomerPersonalInfoFormProps) {
+export default function UserPersonalInfoForm({ onSubmit, loading }: UserPersonalInfoFormProps) {
     const { control, formState: { errors }, handleSubmit, watch } = useFormContext();
     const [showPassword, setShowPassword] = React.useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
@@ -105,13 +105,13 @@ export default function CustomerPersonalInfoForm({ onSubmit, loading }: Customer
                                     editable={!loading} // Disable when loading
                                 />
                             )}
-                            name="phone"
+                            name="phoneNumber"
                         />
                         <PhoneIcon />
                     </View>
-                    {errors.phone && (
+                    {errors.phoneNumber && (
                         <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                            {getErrorMessage(errors.phone as FieldError)}
+                            {getErrorMessage(errors.phoneNumber as FieldError)}
                         </Text>
                     )}
 

@@ -19,7 +19,6 @@ import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import HeadsetPhoneIcon from "@/assets/icons/Driver/HeadsetPhoneIcon";
 import { Images } from "@/constants";
 import { router, useLocalSearchParams } from "expo-router";
-import useOrders, { Order } from "@/hooks/useOrders";
 
 interface Offer {
   $id: string;
@@ -31,40 +30,14 @@ interface Offer {
 
 const OrderDetails = () => {
   const { id } = useLocalSearchParams();
-  const { getOrderById, assignDriverToOrder, deleteOrder, loading, error } = useOrders();
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<any | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [offers, setOffers] = useState<Offer[]>([]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      if (typeof id === "string") {
-        try {
-          const orderData = await getOrderById(id);
-          setOrder(orderData);
-          // Mock fetching offers (replace with actual API call to fetch offers)
-          const mockOffers: Offer[] = [
-            {
-              $id: "1",
-              driverId: "driver1",
-              driverName: "سيف حسن",
-              price: 120,
-              driverImage: Images.man,
-            },
-            {
-              $id: "2",
-              driverId: "driver2",
-              driverName: "أحمد محمد",
-              price: 130,
-              driverImage: Images.man,
-            },
-          ];
-          setOffers(mockOffers);
-        } catch (err) {
-          console.error("Failed to fetch order:", err);
-        }
-      }
+
     };
     fetchOrderDetails();
   }, [id]);
@@ -72,8 +45,7 @@ const OrderDetails = () => {
   const handleAcceptOffer = async (offer: Offer) => {
     if (typeof id === "string") {
       try {
-        await assignDriverToOrder(id, offer.driverId, offer.$id);
-        setSelectedOffer(offer);
+
       } catch (err) {
         console.error("Failed to accept offer:", err);
       }
@@ -83,9 +55,7 @@ const OrderDetails = () => {
   const handleDeleteOrder = async () => {
     if (typeof id === "string") {
       try {
-        await deleteOrder(id);
-        setModalVisible(false);
-        setSelectedOffer(null);
+
         router.back();
       } catch (err) {
         console.error("Failed to delete order:", err);
@@ -93,25 +63,7 @@ const OrderDetails = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text style={{ fontSize: 18, color: "#878A8E", fontWeight: "700" }}>
-          جارٍ التحميل...
-        </Text>
-      </View>
-    );
-  }
 
-  if (error || !order) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text style={{ fontSize: 18, color: "#878A8E", fontWeight: "700" }}>
-          {error || "لم يتم العثور على الطلب"}
-        </Text>
-      </View>
-    );
-  }
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>

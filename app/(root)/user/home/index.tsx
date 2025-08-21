@@ -1,7 +1,7 @@
-import CenterPointIcon from '@/assets/icons/Customer/CenterPointIcon';
-import ClockIcon from '@/assets/icons/Customer/ClockIcon';
-import LocationIcon from '@/assets/icons/Customer/LocationIcon';
-import NotificationIcon from '@/assets/icons/Customer/NotificationIcon';
+import CenterPointIcon from '@/assets/icons/user/CenterPointIcon';
+import ClockIcon from '@/assets/icons/user/ClockIcon';
+import LocationIcon from '@/assets/icons/user/LocationIcon';
+import NotificationIcon from '@/assets/icons/user/NotificationIcon';
 import { Images, vehicleMockData } from '@/constants';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -11,13 +11,13 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import ArrowToLeftIcon from '@/assets/icons/Auth/ArrowToLeftIcon';
 import SteeringIcon from '@/assets/icons/Auth/SteeringIcon';
 import { db as database } from '@/api/config';
-import WeightIcon from '@/assets/icons/Customer/WeightIcon';
-import PlusIcon from '@/assets/icons/Customer/PlusIcon';
+import WeightIcon from '@/assets/icons/user/WeightIcon';
+import PlusIcon from '@/assets/icons/user/PlusIcon';
 import { ID } from 'react-native-appwrite';
-import { OrderDriverCard } from '@/components/customer/OrderDriverCard';
-import useOrders from '@/hooks/useOrders';
-import useAuth from '@/hooks/useAuth';
+import { OrderDriverCard } from '@/components/user/OrderDriverCard';
 import { router } from 'expo-router';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 
 export default function Home() {
   const {
@@ -36,6 +36,12 @@ export default function Home() {
       vehicleTypeId: ''
     }
   });
+  const { token,user,role} = useSelector((state: RootState) => state.auth)
+  console.log(token);
+  console.log(user);
+  console.log(role);
+  
+  
   const order = {
     id: 1,
     from: "13 ش الكورنيش، حلب، سوريا",
@@ -52,8 +58,6 @@ export default function Home() {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { createOrder } = useOrders()
-  const { logout } = useAuth()
 
   const VerticalDashedLine = () => (
     <View style={{ height: 24, width: 1, justifyContent: 'space-between' }}>
@@ -117,14 +121,8 @@ export default function Home() {
         items_quantity: '1',
         vehicleTypes: data.vehicleTypeId
       };
-      const res = await createOrder(orderData as any)
-      // await database.createDocument(
-      //   "68724035002cd5c6269d",
-      //   "6896ff68001f1ddeb47b",
-      //   ID.unique(),
-      //   orderData
-      // );
-      console.log('res', res);
+
+
       console.log('Order created successfully');
     } catch (error) {
       console.error('Failed to create order:', error);
@@ -169,7 +167,7 @@ export default function Home() {
             </View>
           )}
           <TouchableOpacity onPress={() => {
-            logout()
+
             router.replace("/(auth)")
           }}>
             <Text>Logout</Text>

@@ -1,4 +1,4 @@
-import NotificationIcon from "@/assets/icons/Customer/NotificationIcon";
+import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -19,8 +19,9 @@ import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
 import PolicyIcon from "@/assets/icons/Driver/PolicyIcon";
 import HelpIcon from "@/assets/icons/Driver/HelpIcon";
 import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
-import useAuth from "@/hooks/useAuth";
-// import { useAuth } from "@/context/AuthContext";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/redux/store";
+import { logout } from "@/redux/slices/AuthSlice";
 
 
 
@@ -42,12 +43,7 @@ export default function Profile() {
       vehicleTypeId: "",
     },
   });
-  //   const { logout } = useAuth();
-  //   const handleLogUserOut = useCallback(async () => {
-  //   await logout();
-  // }, [logout]);
-  const {logout} = useAuth()
-
+  const dispatch = useDispatch<AppDispatch>()
   const [modalVisible, setModalVisible] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -123,7 +119,7 @@ export default function Profile() {
         </View>
         <View style={{ marginBottom: 64, gap: 24 }}>
           <TouchableOpacity
-            onPress={() => router.push("/(root)/customer/profile/profile-page")}
+            onPress={() => router.push("/(root)/user/profile/profile-page")}
             style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
           >
             <ToRightIcon />
@@ -153,8 +149,8 @@ export default function Profile() {
         </View>
         <View>
           <TouchableOpacity
-            onPress={() => {
-              logout()
+            onPress={async () => {
+              await dispatch(logout())
               router.replace("/(auth)")
             }}
             style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
