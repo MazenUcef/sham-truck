@@ -116,6 +116,12 @@ const offersSlice = createSlice({
       })
       .addCase(createOffer.fulfilled, (state, action: PayloadAction<OfferResponse>) => {
         state.status = "succeeded";
+        // Ensure state.offers is an array
+        if (!Array.isArray(state.offers)) {
+          console.warn("state.offers was undefined or not an array, reinitializing to []");
+          state.offers = [];
+        }
+        console.log("Current state.offers before push:", state.offers);
         state.offers.push({
           ...action.payload.offer,
           driver_id: {
@@ -131,10 +137,12 @@ const offersSlice = createSlice({
                 vehicle_type: action.payload.offer.order_id.vehicle_type.trim(),
               },
         });
+        console.log("Current state.offers after push:", state.offers);
       })
       .addCase(createOffer.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to create offer";
+        console.error("createOffer rejected:", state.error);
       })
       // getOrderOffers cases
       .addCase(getOrderOffers.pending, (state) => {
@@ -143,7 +151,10 @@ const offersSlice = createSlice({
       })
       .addCase(getOrderOffers.fulfilled, (state, action: PayloadAction<Offer[]>) => {
         state.status = "succeeded";
-        state.offers = action.payload.map((offer) => ({
+        // Ensure action.payload is an array
+        const offers = Array.isArray(action.payload) ? action.payload : [];
+        console.log("getOrderOffers payload:", offers);
+        state.offers = offers.map((offer) => ({
           ...offer,
           driver_id: {
             ...offer.driver_id,
@@ -158,10 +169,12 @@ const offersSlice = createSlice({
                 vehicle_type: offer.order_id.vehicle_type.trim(),
               },
         }));
+        console.log("Current state.offers after getOrderOffers:", state.offers);
       })
       .addCase(getOrderOffers.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to fetch offers";
+        console.error("getOrderOffers rejected:", state.error);
       });
   },
 });

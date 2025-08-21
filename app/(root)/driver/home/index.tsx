@@ -254,6 +254,9 @@ export default function Home() {
             justifyContent: "space-between",
           }}
         >
+          <TouchableOpacity onPress={()=>dispatch(clearError())}>
+            <Text>clear</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
             style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
