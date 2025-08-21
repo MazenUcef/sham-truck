@@ -87,7 +87,7 @@ export const OfferuserCard = ({
         style={styles.buttonOutline}
         onPress={() =>
           router.push({
-            pathname: "/user/home/order-details/[id]",
+            pathname: "/(root)/order-details/[id]",
             params: { id: 1233 },
           })
         }

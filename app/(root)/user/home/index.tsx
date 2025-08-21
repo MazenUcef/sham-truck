@@ -2,7 +2,7 @@ import CenterPointIcon from '@/assets/icons/user/CenterPointIcon';
 import ClockIcon from '@/assets/icons/user/ClockIcon';
 import LocationIcon from '@/assets/icons/user/LocationIcon';
 import NotificationIcon from '@/assets/icons/user/NotificationIcon';
-import { Images, vehicleMockData } from '@/constants';
+import { Images } from '@/constants';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -10,21 +10,23 @@ import { format } from 'date-fns';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import ArrowToLeftIcon from '@/assets/icons/Auth/ArrowToLeftIcon';
 import SteeringIcon from '@/assets/icons/Auth/SteeringIcon';
-import { db as database } from '@/api/config';
 import WeightIcon from '@/assets/icons/user/WeightIcon';
 import PlusIcon from '@/assets/icons/user/PlusIcon';
-import { ID } from 'react-native-appwrite';
 import { OrderDriverCard } from '@/components/user/OrderDriverCard';
 import { router } from 'expo-router';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/redux/store';
+import { createOrder, getUserOrders, clearError as clearOrdersError } from '@/redux/slices/OrdersSlice';
+import { fetchVehicleTypes, clearError as clearVehicleError } from '@/redux/slices/VehicleTypesSlice';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 export default function Home() {
   const {
     control,
     handleSubmit,
     setValue,
-    formState: { errors }
+    formState: { errors },
+    reset,
   } = useForm({
     defaultValues: {
       fromLocation: '',
@@ -33,31 +35,53 @@ export default function Home() {
       weight: '',
       dateNtime: new Date(),
       vehicleType: '',
-      vehicleTypeId: ''
-    }
+      vehicleTypeId: '',
+      loadingTime: '',
+      notes: '',
+    },
   });
-  const { token,user,role} = useSelector((state: RootState) => state.auth)
-  console.log(token);
-  console.log(user);
-  console.log(role);
-  
-  
-  const order = {
-    id: 1,
-    from: "13 ش الكورنيش، حلب، سوريا",
-    to: "7 ش التربوي، دمشق، سوريا",
-    weight: "1.5 طن",
-    dateTime: "17:00 - 25/05/2025",
-    type: "أثاث منزل",
-    vehicle: "شاحنة عادية"
-  };
+  const { token, user, role } = useSelector((state: RootState) => state.auth);
+  const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
+  const { vehicleTypes, status: vehicleStatus, error: vehicleError } = useSelector((state: RootState) => state.vehicleTypes);
+  const dispatch = useDispatch<AppDispatch>();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [date, setDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState<'عادية' | 'مغلقة' | 'مبردة'>('عادية');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Skeleton animation
+  const opacity = useSharedValue(0.3);
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(opacity.value, { duration: 1000 }),
+  }));
+
+  useEffect(() => {
+    // Fetch user orders and vehicle types on mount
+    dispatch(getUserOrders());
+    dispatch(fetchVehicleTypes());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Handle errors
+    if (ordersError) {
+      console.error("Orders error:", ordersError);
+      dispatch(clearOrdersError());
+    }
+    if (vehicleError) {
+      console.error("Vehicle types error:", vehicleError);
+      dispatch(clearVehicleError());
+    }
+  }, [ordersError, vehicleError, dispatch]);
+
+  useEffect(() => {
+    // Animate skeleton opacity
+    if (ordersStatus === 'loading') {
+      opacity.value = withTiming(0.3, { duration: 1000 }, () => {
+        opacity.value = withTiming(1, { duration: 1000 });
+      });
+    }
+  }, [ordersStatus]);
 
   const VerticalDashedLine = () => (
     <View style={{ height: 24, width: 1, justifyContent: 'space-between' }}>
@@ -75,6 +99,23 @@ export default function Home() {
     </View>
   );
 
+  const SkeletonOrderCard = () => (
+    <Animated.View style={[styles.orderCard, animatedStyle]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <View style={{ width: 24, height: 24, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
+        <View style={{ flex: 1, height: 16, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <View style={{ width: 24, height: 24, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
+        <View style={{ flex: 1, height: 16, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ width: 24, height: 24, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
+        <View style={{ flex: 1, height: 16, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
+      </View>
+    </Animated.View>
+  );
+
   const formattedDate = format(date, 'dd/MM/yyyy - hh:mm a');
 
   const showDatePicker = () => {
@@ -84,24 +125,6 @@ export default function Home() {
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
-  const fetchOrders = async () => {
-    try {
-      setIsLoading(true);
-      const response = await database.listDocuments(
-        "68724035002cd5c6269d",
-        "6896ff68001f1ddeb47b"
-      );
-      setOrders(response.documents);
-      console.log("orders", response.documents);
-    } catch (error) {
-      console.error('Failed to fetch orders:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  useEffect(() => {
-    fetchOrders()
-  }, [])
 
   const handleConfirm = (selectedDate: Date) => {
     setDate(selectedDate);
@@ -112,18 +135,18 @@ export default function Home() {
   const onSubmit = async (data: any) => {
     try {
       const orderData = {
-        order_from: data.fromLocation,
-        order_to: data.toLocation,
-        order_date: data.dateNtime,
-        order_time: data.dateNtime,
-        weight: parseFloat(data.weight) || 0,
-        items_type: data.cargoType,
-        items_quantity: '1',
-        vehicleTypes: data.vehicleTypeId
+        from_location: data.fromLocation,
+        to_location: data.toLocation,
+        vehicle_type: data.vehicleTypeId,
+        weight_or_volume: `${data.weight} kg`,
+        date_time_transport: data.dateNtime.toISOString(),
+        loading_time: data.loadingTime,
+        notes: data.notes,
       };
-
-
+      await dispatch(createOrder(orderData)).unwrap();
       console.log('Order created successfully');
+      reset();
+      dispatch(getUserOrders()); // Refresh user orders
     } catch (error) {
       console.error('Failed to create order:', error);
     }
@@ -133,9 +156,11 @@ export default function Home() {
     return error?.message || 'هذا الحقل مطلوب';
   };
 
+  // Get the most recent order
+  const latestOrder = orders.length > 0 ? orders[0] : null;
+
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84, position: "relative" }}>
-
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
@@ -144,7 +169,7 @@ export default function Home() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 24, marginBottom: 24 }}>
             <NotificationIcon />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <Text style={{ fontWeight: '700', fontSize: 16, color: "#F6F6F6" }}>مرحبا ، سيف</Text>
+              <Text style={{ fontWeight: '700', fontSize: 16, color: "#F6F6F6" }}>مرحبا ، {user?.fullName || 'سيف'}</Text>
               <View style={{ width: 48, height: 48, backgroundColor: "white", borderRadius: 8 }}>
                 <Image
                   style={{ width: 48, height: 48 }}
@@ -154,25 +179,26 @@ export default function Home() {
             </View>
           </View>
 
-          {order && (
+          {ordersStatus === 'loading' ? (
+            <View style={{ position: "absolute", zIndex: 1000, top: 70, right: 58}}>
+              <Text style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</Text>
+              <SkeletonOrderCard />
+            </View>
+          ) : latestOrder ? (
             <View style={{ position: "absolute", zIndex: 1000, top: 70, right: 25 }}>
               <Text style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</Text>
               <OrderDriverCard
-                type={order.type}
-                from={order.from}
-                to={order.to}
-                weight={order.weight}
-                dateTime={order.dateTime}
+                type={typeof latestOrder.vehicle_type === 'string' ? latestOrder.vehicle_type : latestOrder.vehicle_type.type}
+                from={latestOrder.from_location}
+                to={latestOrder.to_location}
+                weight={latestOrder.weight_or_volume}
+                dateTime={format(new Date(latestOrder.date_time_transport), 'dd/MM/yyyy - hh:mm a')}
+                orderId={latestOrder._id}
               />
             </View>
-          )}
-          <TouchableOpacity onPress={() => {
+          ) : null}
 
-            router.replace("/(auth)")
-          }}>
-            <Text>Logout</Text>
-          </TouchableOpacity>
-          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: order ? 170 : 0, paddingTop: order ? 100 : 0, paddingBottom: 100 }}>
+          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: latestOrder ? 170 : 0, paddingTop: latestOrder ? 100 : 0, paddingBottom: 100 }}>
             <Text style={{ fontWeight: '700', fontSize: 18, lineHeight: 24, alignSelf: "flex-end" }}>إنشاء طلب جديد</Text>
 
             <View style={{ marginTop: 24 }}>
@@ -187,7 +213,7 @@ export default function Home() {
                       <TextInput
                         style={{ flex: 1, textAlign: 'right' }}
                         placeholderTextColor={"#878A8E"}
-                        placeholder='أدخل موقم الحمولة'
+                        placeholder='أدخل موقع الحمولة'
                         onBlur={onBlur}
                         onChangeText={onChange}
                         value={value}
@@ -205,7 +231,7 @@ export default function Home() {
                 <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
                   <Controller
                     control={control}
-                    rules={{ required: ' وجهة الحمولة مطلوب' }}
+                    rules={{ required: 'وجهة الحمولة مطلوب' }}
                     render={({ field: { onChange, onBlur, value } }) => (
                       <TextInput
                         style={{ flex: 1, textAlign: 'right' }}
@@ -274,7 +300,7 @@ export default function Home() {
                           <TextInput
                             style={{ flex: 1, textAlign: 'right' }}
                             placeholderTextColor={"#878A8E"}
-                            placeholder=' وزن الحمولة'
+                            placeholder='وزن الحمولة'
                             onBlur={onBlur}
                             onChangeText={onChange}
                             value={value}
@@ -291,6 +317,36 @@ export default function Home() {
                       </Text>
                     )}
                   </View>
+                </View>
+              </View>
+
+              {/* Loading Time */}
+              <View style={{ marginTop: 20 }}>
+                <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>مدة التحميل</Text>
+                <View style={{ marginTop: 8 }}>
+                  <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
+                    <Controller
+                      control={control}
+                      rules={{ required: 'مدة التحميل مطلوبة' }}
+                      render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                          style={{ flex: 1, textAlign: 'right' }}
+                          placeholderTextColor={"#878A8E"}
+                          placeholder='أدخل مدة التحميل (مثال: 2 ساعات)'
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                        />
+                      )}
+                      name="loadingTime"
+                    />
+                    <ClockIcon />
+                  </View>
+                  {errors.loadingTime && (
+                    <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
+                      {getErrorMessage(errors.loadingTime)}
+                    </Text>
+                  )}
                 </View>
               </View>
 
@@ -331,8 +387,32 @@ export default function Home() {
                 </View>
               </View>
 
+              {/* Notes */}
+              <View style={{ marginTop: 20 }}>
+                <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>ملاحظات</Text>
+                <View style={{ marginTop: 8 }}>
+                  <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
+                    <Controller
+                      control={control}
+                      render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                          style={{ flex: 1, textAlign: 'right' }}
+                          placeholderTextColor={"#878A8E"}
+                          placeholder='أدخل ملاحظات إضافية (اختياري)'
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                        />
+                      )}
+                      name="notes"
+                    />
+                    <WeightIcon />
+                  </View>
+                </View>
+              </View>
+
               {/* Vehicle Type */}
-              <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>أختر نوع الشاحنة</Text>
+              <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>اختر نوع الشاحنة</Text>
               <TouchableOpacity
                 style={{ marginTop: 8, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}
                 onPress={() => setModalVisible(true)}
@@ -413,28 +493,37 @@ export default function Home() {
               </View>
 
               <View style={[styles.vehicleTypesContainer, {}]}>
-                {vehicleMockData
-                  .filter(vehicle => vehicle.category === activeTab)
-                  .map((vehicle) => (
-                    <TouchableOpacity
-                      key={vehicle.id}
-                      style={[styles.vehicleTypeItem]}
-                      onPress={() => {
-                        setValue('vehicleType', vehicle.type);
-                        setValue('vehicleTypeId', String(vehicle.id));
-                        setModalVisible(false);
-                      }}
-                    >
-                      <Image
-                        source={vehicle.image}
-                        style={{ width: 40, height: 40 }}
-                      />
-                      <View style={{ flex: 1, alignItems: 'flex-start' }}>
-                        <Text style={{ fontWeight: '800', fontSize: 14 }}>{vehicle.type}</Text>
-                        <Text style={{ fontWeight: '600', fontSize: 12, color: "#878A8E", marginTop: 6 }}>{vehicle.category}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+                {vehicleStatus === "loading" ? (
+                  <Text>جاري تحميل أنواع المركبات...</Text>
+                ) : vehicleTypes && vehicleTypes.length > 0 ? (
+                  vehicleTypes
+                    .filter((vehicle) => vehicle.type === activeTab)
+                    .map((vehicle) => (
+                      <TouchableOpacity
+                        key={vehicle._id}
+                        style={[styles.vehicleTypeItem]}
+                        onPress={() => {
+                          setValue("vehicleType", vehicle.type);
+                          setValue("vehicleTypeId", vehicle._id);
+                          setModalVisible(false);
+                        }}
+                      >
+                        <Image
+                          source={{ uri: vehicle.image }}
+                          resizeMode='contain'
+                          style={{ width: 80, height: 60, borderRadius: 8 }}
+                        />
+                        <View style={{ flex: 1, alignItems: "flex-start" }}>
+                          <Text style={{ fontWeight: 800, fontSize: 14 }}>{vehicle.type}</Text>
+                          <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E", marginTop: 6 }}>
+                            {vehicle.description}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))
+                ) : (
+                  <Text>لا توجد أنواع مركبات متاحة</Text>
+                )}
               </View>
 
               <TouchableOpacity
@@ -530,5 +619,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontSize: 12,
     color: "white"
+  },
+  orderCard: {
+    width: 300,
+    height: 124,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
 });

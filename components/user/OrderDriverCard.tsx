@@ -19,12 +19,14 @@ export const OrderDriverCard = ({
   weight,
   dateTime,
   type,
+  orderId
 }: {
   from: string;
   to: string;
   weight: string;
   dateTime: string;
   type: string;
+  orderId:string
 }) => {
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
@@ -87,8 +89,8 @@ export const OrderDriverCard = ({
         style={styles.buttonOutline}
         onPress={() =>
           router.push({
-            pathname: "/user/home/order-details/[id]",
-            params: { id: 1233 },
+            pathname: "/(root)/order-details/[id]",
+            params: { id: orderId }
           })
         }
       >

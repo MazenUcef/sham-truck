@@ -3,26 +3,14 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Image,
-  Modal,
-  FlatList,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { format } from "date-fns";
-import { db as database } from "@/api/config";
-import { ID } from "react-native-appwrite";
-import LocationPinIcon from "@/assets/icons/Driver/PositionIcon";
-import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
-import FilterIcon from "@/assets/icons/Driver/FilterIcon";
 import { Images, mockOffers, mockOrders, SYRIAN_CITIES } from "@/constants";
-import { OrderCard } from "@/components/driver/OrderCard";
-import LeftIcon from "@/assets/icons/Auth/LeftIcon";
 import { router } from "expo-router";
 import RightIcon from "@/assets/icons/Driver/RightIcon";
-import { OfferCard } from "@/components/driver/OfferCard";
 import UserIcon from "@/assets/icons/Driver/UserIcon";
 import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
 import TruckIcon from "@/assets/icons/Driver/TruckIcon";
@@ -60,27 +48,6 @@ export default function Profile() {
   const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
   const [filterCity, setFilterCity] = useState("الكل");
   const dispatch = useDispatch<AppDispatch>()
-
-
-  const fetchOrders = async () => {
-    try {
-      setIsLoading(true);
-      const response = await database.listDocuments(
-        "68724035002cd5c6269d",
-        "6896ff68001f1ddeb47b"
-      );
-      setOrders(response.documents);
-      console.log("orders", response.documents);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
 
 
 

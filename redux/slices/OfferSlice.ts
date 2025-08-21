@@ -35,7 +35,7 @@ interface Driver {
 
 interface Offer {
   _id: string;
-  order_id: Order;
+  order_id: string | Order;
   driver_id: Driver;
   price: number;
   notes: string;
@@ -78,20 +78,38 @@ export const createOffer = createAsyncThunk<
   }
 });
 
+export const getOrderOffers = createAsyncThunk<
+  Offer[],
+  string,
+  { rejectValue: string }
+>("offers/getOrderOffers", async (orderId, { rejectWithValue }) => {
+  try {
+    const response = await apiService.get<Offer[]>(`/api/offers/order/${orderId}`);
+    console.log("Fetched offers for order:", response);
+    return response;
+  } catch (error: any) {
+    console.error("Fetch offers error:", error);
+    return rejectWithValue(
+      error.response?.data?.message || error.message || "Failed to fetch offers"
+    );
+  }
+});
+
 const offersSlice = createSlice({
   name: "offers",
   initialState,
   reducers: {
     clearError: (state) => {
       state.error = null;
-      state.status = "idle"; // Reset status to idle
+      state.status = "idle";
     },
     resetStatus: (state) => {
-      state.status = "idle"; // Reset status to idle without clearing offers
+      state.status = "idle";
     },
   },
   extraReducers: (builder) => {
     builder
+      // createOffer cases
       .addCase(createOffer.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -106,15 +124,44 @@ const offersSlice = createSlice({
             vehicleNumber: action.payload.offer.driver_id.vehicleNumber.trim(),
             vehicleType: action.payload.offer.driver_id.vehicleType.trim(),
           },
-          order_id: {
-            ...action.payload.offer.order_id,
-            vehicle_type: action.payload.offer.order_id.vehicle_type.trim(),
-          },
+          order_id: typeof action.payload.offer.order_id === "string"
+            ? action.payload.offer.order_id
+            : {
+                ...action.payload.offer.order_id,
+                vehicle_type: action.payload.offer.order_id.vehicle_type.trim(),
+              },
         });
       })
       .addCase(createOffer.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to create offer";
+      })
+      // getOrderOffers cases
+      .addCase(getOrderOffers.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(getOrderOffers.fulfilled, (state, action: PayloadAction<Offer[]>) => {
+        state.status = "succeeded";
+        state.offers = action.payload.map((offer) => ({
+          ...offer,
+          driver_id: {
+            ...offer.driver_id,
+            phoneNumber: offer.driver_id.phoneNumber.trim(),
+            vehicleNumber: offer.driver_id.vehicleNumber.trim(),
+            vehicleType: offer.driver_id.vehicleType.trim(),
+          },
+          order_id: typeof offer.order_id === "string"
+            ? offer.order_id
+            : {
+                ...offer.order_id,
+                vehicle_type: offer.order_id.vehicle_type.trim(),
+              },
+        }));
+      })
+      .addCase(getOrderOffers.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to fetch offers";
       });
   },
 });

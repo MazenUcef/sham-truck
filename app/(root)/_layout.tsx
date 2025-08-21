@@ -6,6 +6,7 @@ export default function Layout() {
         <Stack>
             <Stack.Screen name='driver' options={{ headerShown: false }} />
             <Stack.Screen name='user' options={{ headerShown: false }} />
+            <Stack.Screen name='order-details' options={{ headerShown: false }} />
         </Stack>
     )
 }

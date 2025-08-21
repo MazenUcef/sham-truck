@@ -54,28 +54,6 @@ export default function Requests() {
 
 
 
-  const fetchOrders = async () => {
-    try {
-      setIsLoading(true);
-      const response = await database.listDocuments(
-        "68724035002cd5c6269d",
-        "6896ff68001f1ddeb47b"
-      );
-      setOrders(response.documents);
-      console.log("orders", response.documents);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-
-
   // Filtered orders based on filterCity
   const filteredOrders = filterCity === "الكل"
     ? mockOrders
