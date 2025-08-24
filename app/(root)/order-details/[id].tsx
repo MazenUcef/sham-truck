@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   View,
   Modal,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
@@ -16,68 +18,17 @@ import PositionIcon from "@/assets/icons/Driver/PositionIcon";
 import RightIcon from "@/assets/icons/Driver/RightIcon";
 import TruckIconSmall from "@/assets/icons/Driver/TruckIconSmall";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
-import HeadsetPhoneIcon from "@/assets/icons/Driver/HeadsetPhoneIcon";
+import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
 import { Images } from "@/constants";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { getOrderById } from "@/redux/slices/OrdersSlice";
-import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
-import { AppDispatch } from "@/redux/store";
+import { AppDispatch, RootState } from "@/redux/store";
 import SelectedOfferDetails from "@/components/user/SelectedOfferDetails";
 import OffersList from "@/components/user/OffersList";
 import DeleteConfirmationModal from "@/components/user/DeleteConfirmationModal";
-import { getOrderOffers } from "@/redux/slices/OfferSlice";
-
-interface Offer {
-  $id: string;
-  driverId: string;
-  driverName: string;
-  price: number;
-  driverImage?: string;
-}
-
-// Define Redux Offer interface for fetched data
-interface ReduxOffer {
-  _id: string;
-  driver_id: {
-    _id: string;
-    fullName: string;
-    email: string;
-    phoneNumber: string;
-    photo: string;
-    vehicleNumber: string;
-    vehicleType: string;
-  };
-  price: number;
-  notes: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Order {
-  _id: string;
-  customer_id: {
-    _id: string;
-    fullName: string;
-    email: string;
-    phoneNumber: string;
-  };
-  from_location: string;
-  to_location: string;
-  vehicle_type: {
-    _id: string;
-    type: string;
-    description: string;
-    image: string;
-  };
-  weight_or_volume: string;
-  date_time_transport: string;
-  loading_time: string;
-  notes: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { Offer, Order } from "@/types";
+import { clearError as clearOrdersError, getOrderById } from "@/redux/slices/OrdersSlice";
+import { acceptOffer, clearError as clearOffersError, getOrderOffers } from "@/redux/slices/OfferSlice";
 
 const OrderDetails = () => {
   const { id } = useLocalSearchParams();
@@ -94,36 +45,17 @@ const OrderDetails = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const { status: orderStatus, error: orderError } = useSelector((state: any) => state.orders);
-  const { status: offersStatus, error: offersError, offers: fetchedOffers } = useSelector((state: any) => state.offers);
-console.log("fetched offers",fetchedOffers);
+  const { status: orderStatus, error: orderError } = useSelector((state: RootState) => state.orders);
+  const { status: offersStatus, error: offersError, offers: fetchedOffers } = useSelector((state: RootState) => state.offers);
+  console.log("fetched offers", fetchedOffers);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (typeof id === "string") {
         try {
-          // Fetch order details
           const action = await dispatch(getOrderById(id));
           const fetchedOrder = action.payload as Order;
-
-          // Map the fetched order to the expected structure
-          setOrder({
-            _id: fetchedOrder._id,
-            customer_id: fetchedOrder.customer_id,
-            from_location: fetchedOrder.from_location,
-            to_location: fetchedOrder.to_location,
-            vehicle_type: fetchedOrder.vehicle_type,
-            weight_or_volume: fetchedOrder.weight_or_volume,
-            date_time_transport: fetchedOrder.date_time_transport,
-            loading_time: fetchedOrder.loading_time,
-            notes: fetchedOrder.notes,
-            status: fetchedOrder.status,
-            createdAt: fetchedOrder.createdAt,
-            updatedAt: fetchedOrder.updatedAt,
-          });
-
-          // Fetch offers for the order
+          setOrder(fetchedOrder);
           await dispatch(getOrderOffers(id));
         } catch (err) {
           console.error("Failed to fetch order details:", err);
@@ -133,31 +65,15 @@ console.log("fetched offers",fetchedOffers);
     fetchOrderDetails();
   }, [id, dispatch]);
 
-  // Update local offers state when fetchedOffers from Redux changes
-  useEffect(() => {
-    if (fetchedOffers && fetchedOffers.length > 0) {
-      setOffers(
-        fetchedOffers.map((offer: ReduxOffer) => ({
-          $id: offer._id,
-          driverId: offer.driver_id._id,
-          driverName: offer.driver_id.fullName,
-          price: offer.price,
-          driverImage: offer.driver_id.photo,
-        }))
-      );
-    } else {
-      setOffers([]);
-    }
-  }, [fetchedOffers]);
-
   const handleAcceptOffer = async (offer: Offer) => {
     if (typeof id === "string") {
       try {
-        // Implement API call to accept offer
-        // Example: await apiService.post(`/api/orders/${id}/accept-offer`, { offerId: offer.$id });
+        await dispatch(acceptOffer(offer._id)).unwrap();
         setSelectedOffer(offer);
-      } catch (err) {
+        alert("تم قبول العرض بنجاح ✅");
+      } catch (err: any) {
         console.error("Failed to accept offer:", err);
+        alert("فشل في قبول العرض: " + (err || "خطأ غير معروف"));
       }
     }
   };
@@ -171,25 +87,135 @@ console.log("fetched offers",fetchedOffers);
         router.back();
       } catch (err) {
         console.error("Failed to delete order:", err);
+        alert("فشل في حذف الطلب: " + (err || "خطأ غير معروف"));
       }
     }
   };
 
-  // Handle loading and error states for both orders and offers
-  if (orderStatus === "loading" || offersStatus === "loading") {
-    return <Text>Loading...</Text>;
-  }
+  const SkeletonOrderDetails = () => {
+    const opacity = useSharedValue(0.3);
+    const animatedStyle = useAnimatedStyle(() => ({
+      opacity: withTiming(opacity.value, { duration: 1000 }),
+    }));
+
+    useEffect(() => {
+      opacity.value = withTiming(0.3, { duration: 1000 }, () => {
+        opacity.value = withTiming(1, { duration: 1000 });
+      });
+    }, []);
+
+    return (
+      <Animated.View style={[animatedStyle]}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 16 }}>
+          <View />
+          <View style={{ height: 16, width: 100, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+        </View>
+        <View style={{ flexDirection: "row", justifyContent: "flex-end", width: "100%" }}>
+          <View style={{ flexDirection: "column", alignItems: "flex-end", marginBottom: 17 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={{ height: 16, width: 120, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+              <View style={{ width: 24, height: 24, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+            </View>
+            <View style={{ marginRight: 7.2, height: 24, width: 1, backgroundColor: "#E4E4E4" }} />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={{ height: 16, width: 120, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+              <View style={{ width: 24, height: 24, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+            </View>
+          </View>
+        </View>
+        <View style={{ width: "100%", backgroundColor: "#E4E4E4", height: 1 }} />
+        <View style={{ marginVertical: 16, alignSelf: "flex-end" }}>
+          <View style={{ height: 16, width: 120, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+        </View>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ height: 16, width: 80, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+            <View style={{ width: 24, height: 24, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+          </View>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ height: 16, width: 100, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+            <View style={{ width: 24, height: 24, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+          </View>
+        </View>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 16 }}>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ height: 16, width: 80, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+            <View style={{ width: 24, height: 24, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+          </View>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ height: 16, width: 100, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+            <View style={{ width: 24, height: 24, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+          </View>
+        </View>
+      </Animated.View>
+    );
+  };
+
+  const SkeletonOffersList = () => {
+    const opacity = useSharedValue(0.3);
+    const animatedStyle = useAnimatedStyle(() => ({
+      opacity: withTiming(opacity.value, { duration: 1000 }),
+    }));
+
+    useEffect(() => {
+      opacity.value = withTiming(0.3, { duration: 1000 }, () => {
+        opacity.value = withTiming(1, { duration: 1000 });
+      });
+    }, []);
+
+    return (
+      <Animated.View style={[animatedStyle]}>
+        <View style={{ marginTop: 48, alignSelf: "flex-end" }}>
+          <View style={{ height: 16, width: 150, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+        </View>
+        <View
+          style={{
+            height: 92,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: "#E4E4E4",
+            paddingVertical: 8,
+            paddingHorizontal: 10,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+            marginTop: 16,
+          }}
+        >
+          <View
+            style={{
+              width: 124,
+              height: 42,
+              borderRadius: 8,
+              backgroundColor: "#E4E4E4",
+            }}
+          />
+          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+            <View style={{ gap: 4, alignItems: "flex-end" }}>
+              <View style={{ height: 16, width: 100, backgroundColor: "#E4E4E4", borderRadius: 4 }} />
+              <View style={{ height: 12, width: 50, backgroundColor: "#E4E4E4", borderRadius: 4, marginTop: 4 }} />
+              <View style={{ height: 16, width: 80, backgroundColor: "#E4E4E4", borderRadius: 4, marginTop: 4 }} />
+            </View>
+            <View style={{ width: 64, height: 64, backgroundColor: "#E4E4E4", borderRadius: 8 }} />
+          </View>
+        </View>
+      </Animated.View>
+    );
+  };
 
   if (orderStatus === "failed") {
-    return <Text>Error: {orderError}</Text>;
+    return Alert.alert("Error :", orderError || "حدث خطأ", [{
+      text: "OK",
+      onPress: () => dispatch(clearOrdersError())
+    }]);
   }
 
   if (offersStatus === "failed") {
-    return <Text>Error: {offersError}</Text>;
-  }
-
-  if (!order) {
-    return <Text>No order found</Text>;
+    return Alert.alert("Error :", offersError || "حدث خطأ  ", [{
+      text: "OK",
+      onPress: () => dispatch(clearOffersError())
+    }]);
   }
 
   return (
@@ -227,83 +253,104 @@ console.log("fetched offers",fetchedOffers);
           borderTopRightRadius: 16,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
-          <View />
-          <View>
-            <Text style={{ fontWeight: "700", fontSize: 16 }}>تفاصيل رحلة</Text>
-          </View>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "flex-end",
-            width: "100%",
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "column",
-              alignItems: "flex-end",
-              marginBottom: 17,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-            >
-              <Text style={styles.text}>{order.from_location}</Text>
-              <CenterPointIconSmall />
-            </View>
-            <View style={{ marginRight: 7.2 }}>
-              <DashedDividerIcon />
-            </View>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-            >
-              <Text style={styles.text}>{order.to_location}</Text>
-              <PositionIcon />
-            </View>
-          </View>
-        </View>
-        <View
-          style={{ width: "100%", backgroundColor: "#E4E4E4", height: 1 }}
-        />
-        <View style={{ marginVertical: 16, alignSelf: "flex-end" }}>
-          <Text style={{ fontWeight: "700", fontSize: 16 }}>معلومات الرحلة</Text>
-        </View>
-        <View style={styles.rowBetween}>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <Text style={styles.text}>{`${order.weight_or_volume} طن`}</Text>
-            <WeightFurnIcon />
-          </View>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <Text style={styles.text}>
-              {order.date_time_transport || order.createdAt || "غير محدد"}
-            </Text>
-            <ClockIconMini />
-          </View>
-        </View>
-
-        <View style={[styles.rowBetween, { marginTop: 16 }]}>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <Text style={styles.text}>{order.vehicle_type?.type || "شاحنة عادية"}</Text>
-            <TruckIconSmall width={16} height={16} color={"gray"} />
-          </View>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <Text style={styles.text}>{order.notes || "غير محدد"}</Text>
-            <TypeDFurnIcon />
-          </View>
-        </View>
-
-        {selectedOffer ? (
-          <SelectedOfferDetails selectedOffer={selectedOffer} />
+        {orderStatus === "loading" || offersStatus === "loading" || !order ? (
+          <>
+            <SkeletonOrderDetails />
+            <SkeletonOffersList />
+            <SkeletonOffersList />
+          </>
         ) : (
-          <OffersList offers={offers} handleAcceptOffer={handleAcceptOffer} />
+          <>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 16,
+              }}
+            >
+              <View />
+              <View>
+                <Text style={{ fontWeight: "700", fontSize: 16 }}>تفاصيل رحلة</Text>
+              </View>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                width: "100%",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  marginBottom: 17,
+                }}
+              >
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+                >
+                  <Text style={styles.text}>{order.from_location}</Text>
+                  <CenterPointIconSmall />
+                </View>
+                <View style={{ marginRight: 7.2 }}>
+                  <DashedDividerIcon />
+                </View>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+                >
+                  <Text style={styles.text}>{order.to_location}</Text>
+                  <PositionIcon />
+                </View>
+              </View>
+            </View>
+            <View
+              style={{ width: "100%", backgroundColor: "#E4E4E4", height: 1 }}
+            />
+            <View style={{ marginVertical: 16, alignSelf: "flex-end" }}>
+              <Text style={{ fontWeight: "700", fontSize: 16 }}>معلومات الرحلة</Text>
+            </View>
+            <View style={styles.rowBetween}>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <Text style={styles.text}>{`${order.weight_or_volume} طن`}</Text>
+                <WeightFurnIcon />
+              </View>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <Text style={styles.text}>
+                  {order.date_time_transport || order.createdAt || "غير محدد"}
+                </Text>
+                <ClockIconMini />
+              </View>
+            </View>
+
+            <View style={[styles.rowBetween, { marginTop: 16 }]}>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <Text style={styles.text}>
+                  {typeof order.vehicle_type === "string"
+                    ? order.vehicle_type
+                    : order.vehicle_type?.type || "شاحنة عادية"}
+                </Text>
+                <TruckIconSmall width={16} height={16} color={"gray"} />
+              </View>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <Text style={styles.text}>{order.notes || "غير محدد"}</Text>
+                <TypeDFurnIcon />
+              </View>
+            </View>
+
+            {selectedOffer ? (
+              <SelectedOfferDetails
+                selectedOffer={{
+                  ...(selectedOffer as Offer),
+                  $id: (selectedOffer as any)?.$id ?? "",
+                  driverId: (selectedOffer as any)?.driverId ?? "",
+                  driverName: (selectedOffer as any)?.driverName ?? "",
+                }}
+              />
+            ) : (
+              <OffersList offers={fetchedOffers} />
+            )}
+          </>
         )}
       </View>
       <DeleteConfirmationModal

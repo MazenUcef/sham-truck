@@ -5,7 +5,7 @@ import NotificationIcon from '@/assets/icons/user/NotificationIcon';
 import { Images } from '@/constants';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { format } from 'date-fns';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import ArrowToLeftIcon from '@/assets/icons/Auth/ArrowToLeftIcon';
@@ -19,6 +19,7 @@ import { AppDispatch, RootState } from '@/redux/store';
 import { createOrder, getUserOrders, clearError as clearOrdersError } from '@/redux/slices/OrdersSlice';
 import { fetchVehicleTypes, clearError as clearVehicleError } from '@/redux/slices/VehicleTypesSlice';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { getUser } from '@/redux/slices/UserSlice';
 
 export default function Home() {
   const {
@@ -41,29 +42,38 @@ export default function Home() {
     },
   });
   const { token, user, role } = useSelector((state: RootState) => state.auth);
+  const { user: UserData } = useSelector((state: RootState) => state.user);
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
   const { vehicleTypes, status: vehicleStatus, error: vehicleError } = useSelector((state: RootState) => state.vehicleTypes);
   const dispatch = useDispatch<AppDispatch>();
-
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [date, setDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState<'عادية' | 'مغلقة' | 'مبردة'>('عادية');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  // Skeleton animation
+
+  useEffect(() => {
+    if (user && user.id) {
+      dispatch(getUser(user.id));
+    }
+  }, [dispatch, user]);
+
+console.log("user",user);
+console.log("UserData",UserData);
+
+
   const opacity = useSharedValue(0.3);
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: withTiming(opacity.value, { duration: 1000 }),
   }));
 
   useEffect(() => {
-    // Fetch user orders and vehicle types on mount
     dispatch(getUserOrders());
     dispatch(fetchVehicleTypes());
   }, [dispatch]);
 
   useEffect(() => {
-    // Handle errors
     if (ordersError) {
       console.error("Orders error:", ordersError);
       dispatch(clearOrdersError());
@@ -75,7 +85,15 @@ export default function Home() {
   }, [ordersError, vehicleError, dispatch]);
 
   useEffect(() => {
-    // Animate skeleton opacity
+    if (successModalVisible) {
+      const timer = setTimeout(() => {
+        setSuccessModalVisible(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successModalVisible]);
+
+  useEffect(() => {
     if (ordersStatus === 'loading') {
       opacity.value = withTiming(0.3, { duration: 1000 }, () => {
         opacity.value = withTiming(1, { duration: 1000 });
@@ -97,23 +115,6 @@ export default function Home() {
         />
       ))}
     </View>
-  );
-
-  const SkeletonOrderCard = () => (
-    <Animated.View style={[styles.orderCard, animatedStyle]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <View style={{ width: 24, height: 24, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
-        <View style={{ flex: 1, height: 16, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <View style={{ width: 24, height: 24, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
-        <View style={{ flex: 1, height: 16, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <View style={{ width: 24, height: 24, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
-        <View style={{ flex: 1, height: 16, backgroundColor: '#E4E4E4', borderRadius: 4 }} />
-      </View>
-    </Animated.View>
   );
 
   const formattedDate = format(date, 'dd/MM/yyyy - hh:mm a');
@@ -145,8 +146,9 @@ export default function Home() {
       };
       await dispatch(createOrder(orderData)).unwrap();
       console.log('Order created successfully');
+      setSuccessModalVisible(true);
       reset();
-      dispatch(getUserOrders()); // Refresh user orders
+      dispatch(getUserOrders());
     } catch (error) {
       console.error('Failed to create order:', error);
     }
@@ -156,7 +158,6 @@ export default function Home() {
     return error?.message || 'هذا الحقل مطلوب';
   };
 
-  // Get the most recent order
   const latestOrder = orders.length > 0 ? orders[0] : null;
 
   return (
@@ -169,7 +170,7 @@ export default function Home() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 24, marginBottom: 24 }}>
             <NotificationIcon />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <Text style={{ fontWeight: '700', fontSize: 16, color: "#F6F6F6" }}>مرحبا ، {user?.fullName || 'سيف'}</Text>
+              <Text style={{ fontWeight: '700', fontSize: 16, color: "#F6F6F6" }}>مرحبا ، {UserData?.fullName || user?.fullName}</Text>
               <View style={{ width: 48, height: 48, backgroundColor: "white", borderRadius: 8 }}>
                 <Image
                   style={{ width: 48, height: 48 }}
@@ -180,9 +181,18 @@ export default function Home() {
           </View>
 
           {ordersStatus === 'loading' ? (
-            <View style={{ position: "absolute", zIndex: 1000, top: 70, right: 58}}>
-              <Text style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</Text>
-              <SkeletonOrderCard />
+            <View style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              zIndex: 1000,
+            }}>
+              <ActivityIndicator size="large" color="#F9844A" />
             </View>
           ) : latestOrder ? (
             <View style={{ position: "absolute", zIndex: 1000, top: 70, right: 25 }}>
@@ -194,11 +204,12 @@ export default function Home() {
                 weight={latestOrder.weight_or_volume}
                 dateTime={format(new Date(latestOrder.date_time_transport), 'dd/MM/yyyy - hh:mm a')}
                 orderId={latestOrder._id}
+                status ={latestOrder.status}
               />
             </View>
           ) : null}
 
-          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: latestOrder ? 170 : 0, paddingTop: latestOrder ? 100 : 0, paddingBottom: 100 }}>
+          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: latestOrder ? 170 : 0, paddingTop: latestOrder ? 100 : 20, paddingBottom: 100 }}>
             <Text style={{ fontWeight: '700', fontSize: 18, lineHeight: 24, alignSelf: "flex-end" }}>إنشاء طلب جديد</Text>
 
             <View style={{ marginTop: 24 }}>
@@ -442,6 +453,7 @@ export default function Home() {
               <TouchableOpacity
                 style={styles.signInButton}
                 onPress={handleSubmit(onSubmit)}
+                disabled={ordersStatus === "loading"}
               >
                 <Text style={styles.signInButtonText}>
                   إنشاء الطلب
@@ -532,6 +544,22 @@ export default function Home() {
               >
                 <Text style={styles.closeButtonText}>إلغاء</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+        {/* Success Modal */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={successModalVisible}
+          onRequestClose={() => setSuccessModalVisible(false)}
+        >
+          <View style={styles.successModalContainer}>
+            <View style={styles.successModalContent}>
+              <Image
+                source={Images.check}
+              />
+              <Text style={styles.successModalText}>تم إنشاء الطلب بنجاح!</Text>
             </View>
           </View>
         </Modal>
@@ -631,5 +659,38 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+  },
+  successModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  successModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    width: '80%',
+  },
+  successModalText: {
+    fontWeight: '700',
+    fontSize: 18,
+    color: '#000',
+    marginBottom: 20,
+    textAlign: 'center',
+    marginTop: 10
+  },
+  successModalButton: {
+    backgroundColor: '#0077B6',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  successModalButtonText: {
+    fontWeight: '700',
+    fontSize: 14,
+    color: 'white',
   },
 });

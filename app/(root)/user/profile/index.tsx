@@ -19,72 +19,23 @@ import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
 import PolicyIcon from "@/assets/icons/Driver/PolicyIcon";
 import HelpIcon from "@/assets/icons/Driver/HelpIcon";
 import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
 import { logout } from "@/redux/slices/AuthSlice";
+import { getUser } from "@/redux/slices/UserSlice";
 
 
 
 
 export default function Profile() {
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      fromLocation: "",
-      toLocation: "",
-      cargoType: "",
-      weight: "",
-      dateNtime: new Date(),
-      vehicleType: "",
-      vehicleTypeId: "",
-    },
-  });
+  const { user } = useSelector((state: RootState) => state.auth)
+  const { user: UserData } = useSelector((state: RootState) => state.user)
   const dispatch = useDispatch<AppDispatch>()
-  const [modalVisible, setModalVisible] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedCity, setSelectedCity] = useState("حلب");
-  const [searchText, setSearchText] = useState("");
-  const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
-  const [filterCity, setFilterCity] = useState("الكل");
-
-
-
-  const fetchOrders = async () => {
-    try {
-      setIsLoading(true);
-      const response = await database.listDocuments(
-        "68724035002cd5c6269d",
-        "6896ff68001f1ddeb47b"
-      );
-      setOrders(response.documents);
-      console.log("orders", response.documents);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchOrders();
-  }, []);
-
-
-
-  // Filtered orders based on filterCity
-  const filteredOrders = filterCity === "الكل"
-    ? mockOrders
-    : mockOrders.filter(order => order.from.includes(filterCity));
-
-  // Filtered cities for search
-  const filteredCities = SYRIAN_CITIES.filter(city =>
-    city.includes(searchText)
-  );
+    if (user && user.id ) {
+      dispatch(getUser(user.id));
+    }
+  }, [dispatch, user]);
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -107,7 +58,7 @@ export default function Profile() {
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 24, justifyContent: "flex-end", marginBottom: 24 }}>
           <View style={{ gap: 12, justifyContent: "flex-start", alignItems: "flex-end" }}>
-            <Text style={{ fontWeight: 700, fontSize: 18 }}>سيف حسن</Text>
+            <Text style={{ fontWeight: 700, fontSize: 18 }}>{UserData?.fullName || user?.fullName}</Text>
             <Text style={{ fontWeight: 500, fontSize: 16 }}>مستخدم</Text>
           </View>
           <View>

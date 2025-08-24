@@ -1,82 +1,73 @@
-import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import {
   Image,
-  Modal,
   FlatList,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
-import { format } from "date-fns";
-import { db as database } from "@/api/config";
-import { ID } from "react-native-appwrite";
-import LocationPinIcon from "@/assets/icons/Driver/PositionIcon";
-import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
-import FilterIcon from "@/assets/icons/Driver/FilterIcon";
-import { Images, mockOffers, mockOrders, SYRIAN_CITIES } from "@/constants";
-import { OrderCard } from "@/components/driver/OrderCard";
-import LeftIcon from "@/assets/icons/Auth/LeftIcon";
-import { router } from "expo-router";
-import RightIcon from "@/assets/icons/Driver/RightIcon";
+import { Images, mockOffers } from "@/constants";
 import { OfferCard } from "@/components/driver/OfferCard";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { getDriverOffers } from "@/redux/slices/OfferSlice";
 
 
 
 export default function Requests() {
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      fromLocation: "",
-      toLocation: "",
-      cargoType: "",
-      weight: "",
-      dateNtime: new Date(),
-      vehicleType: "",
-      vehicleTypeId: "",
-    },
-  });
+  const dispatch = useDispatch<AppDispatch>();
+  const { offers, status, error } = useSelector((state: RootState) => state.offers);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedCity, setSelectedCity] = useState("حلب");
-  const [searchText, setSearchText] = useState("");
-  const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
-  const [filterCity, setFilterCity] = useState("الكل");
+  useEffect(() => {
+    fetchOffers();
+  }, []);
+
+  // console.log("offerssss",offers[0].customer_id.phoneNumber);
+
+  const fetchOffers = async () => {
+    try {
+      setIsLoading(true);
+      await dispatch(getDriverOffers()).unwrap();
+    } catch (error) {
+      console.error("Failed to fetch offers:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ar-SA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+
+  if (isLoading) {
+    return (
+      <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#FFFFFF" />
+        <Text style={{ color: 'white', marginTop: 16 }}>جاري تحميل العروض...</Text>
+      </View>
+    );
+  }
 
 
 
-  // Filtered orders based on filterCity
-  const filteredOrders = filterCity === "الكل"
-    ? mockOrders
-    : mockOrders.filter(order => order.from.includes(filterCity));
-
-  // Filtered cities for search
-  const filteredCities = SYRIAN_CITIES.filter(city =>
-    city.includes(searchText)
-  );
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
-      <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "flex-end", gap: 85, marginRight: 29 }}>
+      <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "center" }}>
         <Text style={{ fontWeight: 700, fontSize: 18, lineHeight: 24, color: "white" }}>
           العروض التي قدمتها
         </Text>
-        <TouchableOpacity onPress={() => router.back()}>
-          <RightIcon />
-        </TouchableOpacity>
       </View>
-
-
-
       <View
         style={{
           flex: 1,
@@ -86,22 +77,36 @@ export default function Requests() {
           borderTopRightRadius: 16,
         }}
       >
+        {error && (
+          <View style={{ padding: 16, backgroundColor: '#FFEBEE', borderRadius: 8, marginBottom: 16 }}>
+            <Text style={{ color: '#D32F2F', textAlign: 'center' }}>{error}</Text>
+          </View>
+        )}
+
         <FlatList
           style={{ marginBottom: 80 }}
-          data={mockOffers}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <OfferCard
-              status={item.status}
-              type={item.type}
-              vehicle={item.vehicle}
-              from={item.from}
-              to={item.to}
-              weight={item.weight}
-              dateTime={item.dateTime}
-            />
+          data={offers}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => {
+            const order = typeof item.order_id === 'object' ? item.order_id : null;
 
-          )}
+            return (
+              <OfferCard
+                phoneNumber={order?.customer_id?.phoneNumber || ""}
+                offerId={item._id}
+                status={item.status}
+                type={order?.vehicle_type || "غير محدد"}
+                vehicle={order?.vehicle_type || "غير محدد"}
+                from={order?.from_location || "غير محدد"}
+                to={order?.to_location || "غير محدد"}
+                weight={order?.weight_or_volume || "غير محدد"}
+                dateTime={order?.date_time_transport ? formatDateTime(order.date_time_transport) : "غير محدد"}
+                price={item.price}
+                notes={item.notes}
+                originalStatus={item.status}
+              />
+            );
+          }}
           ListEmptyComponent={
             <View style={{ alignItems: "center", paddingTop: 166 }}>
               <Image
@@ -113,6 +118,8 @@ export default function Requests() {
               </Text>
             </View>
           }
+          refreshing={status === 'loading'}
+          onRefresh={fetchOffers}
         />
       </View>
     </View>

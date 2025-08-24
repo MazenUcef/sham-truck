@@ -16,7 +16,7 @@ httpClient.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
         const token = await AsyncStorage.getItem("token")
         if (token) {
-            config.headers.set("Authorization",`Bearer ${token}`)
+            config.headers.set("Authorization", `Bearer ${token}`)
         }
         return config;
     },
@@ -89,6 +89,9 @@ export const apiService = {
 
     patch: <T>(url: string, data: any, config?: AxiosRequestConfig): Promise<T> =>
         httpClient.patch(url, data, config).then((res) => res.data),
+
+    put: <T>(url: string, data: any, config?: AxiosRequestConfig): Promise<T> =>
+        httpClient.put(url, data, config).then((res) => res.data),
 
     delete: <T>(url: string, config?: AxiosRequestConfig): Promise<T> =>
         httpClient.delete(url, config).then((res) => res.data)

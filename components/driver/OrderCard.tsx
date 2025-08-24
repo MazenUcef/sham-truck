@@ -69,7 +69,7 @@ export const OrderCard = ({
     if (confirmationVisible) {
       const timer = setTimeout(() => {
         setConfirmationVisible(false);
-        setLastSubmittedOrderId(null); // Clear the last submitted order ID
+        setLastSubmittedOrderId(null);
       }, 4000);
       return () => clearTimeout(timer);
     }
@@ -81,7 +81,7 @@ export const OrderCard = ({
       alert("Please enter a valid number for the price");
       return;
     }
-    setLastSubmittedOrderId(orderDetails._id); // Track the order ID being submitted
+    setLastSubmittedOrderId(orderDetails._id);
     onOfferSubmit({ amount }, orderDetails);
   };
 
@@ -212,7 +212,9 @@ export const OrderCard = ({
   return (
     <>
       {/* Normal Card */}
-      {renderCardContent(false, false)}
+      <View >
+        {renderCardContent(false, false)}
+      </View>
 
       {/* Details Modal */}
       <Modal
@@ -245,85 +247,85 @@ export const OrderCard = ({
 };
 
 const styles = StyleSheet.create({
-    text: { fontWeight: "500", fontSize: 14, color: "#11171A" },
-    rowBetween: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: "100%",
-    },
-    buttonOutline: {
-        width: "100%",
-        height: 46,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: "#F9844A",
-        marginTop: 16,
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    buttonOutlineText: {
-        fontWeight: "800",
-        fontSize: 14,
-        color: "#F9844A",
-    },
-    inputWrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        width: 174,
-        height: 46,
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        backgroundColor: "white",
-    },
-    input: {
-        flex: 1,
-        height: "100%",
-        textAlign: "right",
-        paddingHorizontal: 8,
-    },
-    buttonFilled: {
-        width: 174,
-        height: 46,
-        borderRadius: 8,
-        backgroundColor: "#0077B6",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "row",
-        gap: 6,
-    },
-    buttonFilledText: {
-        fontWeight: "800",
-        fontSize: 12,
-        color: "white",
-        marginRight: 4,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.3)",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 20,
-    },
-    confirmBox: {
-        width: "85%",
-        backgroundColor: "white",
-        borderRadius: 12,
-        padding: 20,
-        alignItems: "center",
-    },
-    confirmTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        marginTop: 12,
-        marginBottom: 8,
-        textAlign: "center",
-    },
-    confirmText: {
-        fontSize: 14,
-        color: "#555",
-        textAlign: "center",
-    },
+  text: { fontWeight: "500", fontSize: 14, color: "#11171A" },
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  buttonOutline: {
+    width: "100%",
+    height: 46,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#F9844A",
+    marginTop: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonOutlineText: {
+    fontWeight: "800",
+    fontSize: 14,
+    color: "#F9844A",
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: 174,
+    height: 46,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    backgroundColor: "white",
+  },
+  input: {
+    flex: 1,
+    height: "100%",
+    textAlign: "right",
+    paddingHorizontal: 8,
+  },
+  buttonFilled: {
+    width: 174,
+    height: 46,
+    borderRadius: 8,
+    backgroundColor: "#0077B6",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 6,
+  },
+  buttonFilledText: {
+    fontWeight: "800",
+    fontSize: 12,
+    color: "white",
+    marginRight: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  confirmBox: {
+    width: "85%",
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
+  },
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  confirmText: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
+  },
 });

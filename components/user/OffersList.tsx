@@ -1,52 +1,53 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Image, FlatList, ActivityIndicator } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
 import { Images } from "@/constants";
 import ConfirmationIcon from "@/assets/icons/Driver/ConfirmationIcon";
-
-
-interface Offer {
-  $id: string;
-  driverId: string;
-  driverName: string;
-  price: number;
-  driverImage?: string;
-}
+import { acceptOffer } from "@/redux/slices/OfferSlice";
 
 interface OffersListProps {
-  offers: Offer[];
-  handleAcceptOffer: (offer: Offer) => void;
+  offers: any;
+  handleAcceptOffer?: (offer: any) => void;
 }
 
-const OffersList: React.FC<OffersListProps> = ({ offers, handleAcceptOffer }) => {
-  return (
-    <>
-      <View style={{ marginTop: 48, alignSelf: "flex-end" }}>
-        <Text style={{ fontWeight: "700", fontSize: 16 }}>
-          العروض المقدمة ({offers.length})
-        </Text>
-      </View>
-      {offers.length === 0 ? (
-        <Text style={{ textAlign: "center", marginTop: 16, color: "#878A8E" }}>
-          لا توجد عروض متاحة حالياً
-        </Text>
-      ) : (
-        offers.map((offer) => (
-          <View
-            key={offer.$id}
-            style={{
-              height: 92,
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: "#E4E4E4",
-              paddingVertical: 8,
-              paddingHorizontal: 10,
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 12,
-              marginTop: 16,
-            }}
-          >
+const OffersList: React.FC<OffersListProps> = ({ offers }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { status } = useSelector((state: RootState) => state.offers);
+  const [loadingOfferId, setLoadingOfferId] = useState<string | null>(null);
+
+  const handleAcceptOffer = async (offer: any) => {
+    setLoadingOfferId(offer._id);
+    try {
+      await dispatch(acceptOffer(offer._id)).unwrap();
+      alert("تم قبول العرض بنجاح ✅");
+    } catch (error: any) {
+      console.error("Accept offer failed:", error);
+      alert("فشل في قبول العرض: " + (error || "خطأ غير معروف"));
+    } finally {
+      setLoadingOfferId(null);
+    }
+  };
+
+  const renderItem = ({ item }: { item: any }) => (
+    <View
+      style={{
+        height: 92,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#E4E4E4",
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 12,
+        marginTop: 16,
+      }}
+    >
+      {
+        item.status === "Pending" ?
+          (
             <TouchableOpacity
               style={{
                 width: 124,
@@ -57,49 +58,106 @@ const OffersList: React.FC<OffersListProps> = ({ offers, handleAcceptOffer }) =>
                 justifyContent: "center",
                 alignItems: "center",
               }}
-              onPress={() => handleAcceptOffer(offer)}
+              onPress={() => handleAcceptOffer(item)}
+              disabled={status === "loading" && loadingOfferId === item._id}
             >
-              <Text
-                style={{ fontWeight: "800", fontSize: 14, color: "white" }}
-              >
-                الموافقة
-              </Text>
-              <ConfirmationIcon width={24} height={24} />
+              {status === "loading" && loadingOfferId === item._id ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <>
+                  <Text
+                    style={{ fontWeight: "800", fontSize: 14, color: "white" }}
+                  >
+                    الموافقة
+                  </Text>
+                  <ConfirmationIcon width={24} height={24} />
+                </>
+              )}
             </TouchableOpacity>
-            <View
+          )
+          :
+          (
+            <TouchableOpacity
               style={{
+                width: 124,
+                height: 42,
+                borderRadius: 8,
+                backgroundColor: "#cccccc",
                 flexDirection: "row",
-                gap: 12,
+                justifyContent: "center",
                 alignItems: "center",
               }}
+              disabled
             >
-              <View style={{ gap: 4, alignItems: "flex-end" }}>
-                <Text style={{ fontWeight: "500", fontSize: 14 }}>
-                  {offer.driverName}
-                </Text>
-                <Text
-                  style={{
-                    fontWeight: "600",
-                    fontSize: 12,
-                    color: "#878A8E",
-                  }}
-                >
-                  سائق
-                </Text>
-                <Text style={{ fontWeight: "800", fontSize: 14 }}>
-                  {`${offer.price} ليرة سورية`}
-                </Text>
-              </View>
-              <Image
-                source={offer.driverImage ? { uri: offer.driverImage } : Images.userImg}
-                style={{ width: 64, height: 64 }}
-                resizeMode="cover"
-              />
-            </View>
+              <Text
+                style={{ fontWeight: "800", fontSize: 14, color: "black" }}
+              >
+                تمت الموافقة
+              </Text>
+              <ConfirmationIcon width={24} height={24} />
+
+            </TouchableOpacity>
+          )
+      }
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 12,
+          alignItems: "center",
+        }}
+      >
+        <View style={{ gap: 4, alignItems: "flex-end" }}>
+          <Text style={{ fontWeight: "500", fontSize: 14 }}>
+            {item.driver_id.fullName}
+          </Text>
+          <Text
+            style={{
+              fontWeight: "600",
+              fontSize: 12,
+              color: "#878A8E",
+            }}
+          >
+            سائق
+          </Text>
+          <Text style={{ fontWeight: "800", fontSize: 14 }}>
+            {`${item.price} ليرة سورية`}
+          </Text>
+        </View>
+        <Image
+          source={item.driver_id.photo ? { uri: item.driver_id.photo } : Images.userImg}
+          style={{ width: 64, height: 64 }}
+          resizeMode="cover"
+        />
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ marginTop: 48, alignSelf: "flex-end" }}>
+        <Text style={{ fontWeight: "700", fontSize: 16 }}>
+          العروض المقدمة ({offers.length})
+        </Text>
+      </View>
+
+      <FlatList
+        data={offers}
+        renderItem={renderItem}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={{ paddingBottom: 16 }}
+        ListEmptyComponent={
+          <View style={{ justifyContent: "center", alignItems: "center", marginTop: 48 }}>
+            <Image
+              source={Images.emtyOffers}
+              resizeMode="contain"
+            />
+            <Text style={{ textAlign: "center", marginTop: 24, color: "#878A8E", fontWeight: 700, fontSize: 18 }}>
+              لا يوجد عروض حتي الان
+            </Text>
           </View>
-        ))
-      )}
-    </>
+        }
+      />
+    </View>
   );
 };
 

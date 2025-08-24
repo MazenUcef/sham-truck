@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Controller, FieldError, useForm } from "react-hook-form";
 import {
+    ActivityIndicator,
     StyleSheet,
     Text,
     TextInput,
@@ -9,15 +10,20 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import RightIcon from "@/assets/icons/Driver/RightIcon";
-import UserIcon from "@/assets/icons/Driver/UserIcon";
 import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
 import PhoneIcon from "@/assets/icons/Auth/PhoneIcon";
 import GrayUserIcon from "@/assets/icons/Auth/GrayUserIcon";
 import MessageIcon from "@/assets/icons/Auth/MessageIcon";
-
-
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { getUser, updateUser, UserUpdate } from "@/redux/slices/UserSlice";
 
 export default function ProfilePage() {
+    const dispatch = useDispatch<AppDispatch>();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const { user: UserData, status } = useSelector((state: RootState) => state.user)
+    console.log("user data", UserData);
+
     const methods = useForm({
         mode: 'onChange',
         defaultValues: {
@@ -26,23 +32,51 @@ export default function ProfilePage() {
             phone: '',
         }
     });
-    const { control, formState: { errors } ,handleSubmit,} = methods;
+    const { control, formState: { errors }, handleSubmit, setValue } = methods;
 
-
+    useEffect(() => {
+        if (user && user.id) {
+            dispatch(getUser(user.id));
+        }
+    }, [dispatch, user, setValue]);
+    useEffect(() => {
+        if (UserData) {
+            setValue("fullName", UserData?.fullName);
+            setValue("email", UserData?.email);
+            setValue("phone", UserData?.phoneNumber);
+        }
+    }, [UserData])
     const getErrorMessage = (error: FieldError | undefined): string | null => {
         return error ? error.message || 'هذا الحقل مطلوب' : null;
     };
 
-
-    const onSubmit = (data: any) => {
+    const onSubmit = async (data: any) => {
         console.log("Submitted Data:", data);
+        if (!user || !user.id) {
+            alert("فشل في حفظ التغييرات: لا يوجد مستخدم مسجل الدخول");
+            return;
+        }
 
-        // Here you could call an API
-        // await api.updateProfile(data)
+        const userData: UserUpdate = {
+            fullName: data.fullName,
+            email: data.email,
+            phoneNumber: data.phone,
+        };
 
-        // Then navigate or show success
-        alert("تم حفظ التغييرات بنجاح ✅");
+        try {
+            // Dispatch updateUser thunk
+            const updateResult = await dispatch(updateUser({ id: user.id, userData })).unwrap();
+            console.log("Update successful:", updateResult);
+
+            // After successful update, fetch the updated user data
+            await dispatch(getUser(user.id)).unwrap();
+            alert("تم حفظ التغييرات بنجاح ✅");
+        } catch (error: any) {
+            console.error("Update failed:", error);
+            alert("فشل في حفظ التغييرات: " + (error || "خطأ غير معروف"));
+        }
     };
+
     return (
         <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
             <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "flex-end", gap: 85, marginRight: 29 }}>
@@ -53,8 +87,6 @@ export default function ProfilePage() {
                     <RightIcon />
                 </TouchableOpacity>
             </View>
-
-
 
             <View
                 style={{
@@ -149,8 +181,6 @@ export default function ProfilePage() {
                                 {getErrorMessage(errors.phone as FieldError)}
                             </Text>
                         )}
-
-
                     </View>
                 </View>
                 <View
@@ -168,12 +198,29 @@ export default function ProfilePage() {
                     </TouchableOpacity>
                 </View>
                 <View>
-                    <TouchableOpacity
+<TouchableOpacity
                         onPress={handleSubmit(onSubmit)}
-                        style={{ height: 46, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", backgroundColor: "#F9844A" }}
+                        disabled={status === "loading"}
+                        style={{
+                            height: 46,
+                            borderRadius: 8,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100%",
+                            borderWidth: 1,
+                            borderColor: "#E4E4E4",
+                            backgroundColor: "#F9844A",
+                        }}
                     >
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                            <Text style={{ fontWeight: 800, fontSize: 12, color: "white" }}>حفظ التغييرات</Text>
+                            {status === "loading" ? (
+                                <ActivityIndicator size="small" color="white" />
+                            ) : (
+                                <Text style={{ fontWeight: "800", fontSize: 12, color: "white" }}>
+                                    حفظ التغييرات
+                                </Text>
+                            )}
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -181,6 +228,7 @@ export default function ProfilePage() {
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     modalContainer: {

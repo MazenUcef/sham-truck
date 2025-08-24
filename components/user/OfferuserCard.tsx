@@ -12,19 +12,24 @@ import PositionIcon from "@/assets/icons/Driver/PositionIcon";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import ProductIcon from "@/assets/icons/user/OneProcuct";
 import { router } from "expo-router";
+import ConfirmationIcon from "@/assets/icons/user/ConfirmationIcon";
 
-export const OfferuserCard = ({
+export const OfferUserCard = ({
   from,
   to,
   weight,
   dateTime,
   type,
+  orderId,
+  status
 }: {
   from: string;
   to: string;
   weight: string;
   dateTime: string;
   type: string;
+  orderId: string;
+  status: string;
 }) => {
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
@@ -49,7 +54,13 @@ export const OfferuserCard = ({
           width: "100%",
         }}
       >
-        <ProductIcon />
+        {
+          status === "Pending" ?
+            (<ProductIcon />)
+            :
+            (<ConfirmationIcon />)
+        }
+
         <View
           style={{
             flexDirection: "column",
@@ -88,7 +99,7 @@ export const OfferuserCard = ({
         onPress={() =>
           router.push({
             pathname: "/(root)/order-details/[id]",
-            params: { id: 1233 },
+            params: { id: orderId }
           })
         }
       >
@@ -99,7 +110,6 @@ export const OfferuserCard = ({
 
   return (
     <>
-      {/* Normal Card */}
       {renderCardContent(false, false)}
     </>
   );

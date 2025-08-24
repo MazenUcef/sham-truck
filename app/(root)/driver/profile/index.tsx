@@ -18,58 +18,32 @@ import PolicyIcon from "@/assets/icons/Driver/PolicyIcon";
 import HelpIcon from "@/assets/icons/Driver/HelpIcon";
 import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
 import { logout } from "@/redux/slices/AuthSlice";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { getUser } from "@/redux/slices/UserSlice";
 
 
 
 export default function Profile() {
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      fromLocation: "",
-      toLocation: "",
-      cargoType: "",
-      weight: "",
-      dateNtime: new Date(),
-      vehicleType: "",
-      vehicleTypeId: "",
-    },
-  });
-  const [modalVisible, setModalVisible] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedCity, setSelectedCity] = useState("حلب");
-  const [searchText, setSearchText] = useState("");
-  const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
-  const [filterCity, setFilterCity] = useState("الكل");
   const dispatch = useDispatch<AppDispatch>()
+  const { user } = useSelector((state: RootState) => state.auth)
+  const { user: userData } = useSelector((state: RootState) => state.user)
 
 
+  useEffect(() => {
+    if (user && user.id) {
+      dispatch(getUser(user.id));
+    }
+  }, [dispatch, user]);
 
-  // Filtered orders based on filterCity
-  const filteredOrders = filterCity === "الكل"
-    ? mockOrders
-    : mockOrders.filter(order => order.from.includes(filterCity));
-
-  // Filtered cities for search
-  const filteredCities = SYRIAN_CITIES.filter(city =>
-    city.includes(searchText)
-  );
+console.log("userData",userData);
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
-      <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "flex-end", gap: 85, marginRight: 29 }}>
+      <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "center"}}>
         <Text style={{ fontWeight: 700, fontSize: 18, lineHeight: 24, color: "white" }}>
           الملف الشخصي
         </Text>
-        <TouchableOpacity onPress={() => router.back()}>
-          <RightIcon />
-        </TouchableOpacity>
       </View>
 
 
@@ -85,7 +59,7 @@ export default function Profile() {
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 24, justifyContent: "flex-end", marginBottom: 24 }}>
           <View style={{ gap: 12, justifyContent: "flex-start", alignItems: "flex-end" }}>
-            <Text style={{ fontWeight: 700, fontSize: 18 }}>سيف حسن</Text>
+            <Text style={{ fontWeight: 700, fontSize: 18 }}>{userData?.fullName || user?.fullName}</Text>
             <Text style={{ fontWeight: 500, fontSize: 16 }}>سائق</Text>
           </View>
           <View>

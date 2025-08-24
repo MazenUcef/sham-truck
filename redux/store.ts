@@ -5,6 +5,7 @@ import authReducer from "./slices/AuthSlice";
 import vehicleTypesReducer from "./slices/VehicleTypesSlice";
 import ordersReducer from "./slices/OrdersSlice";
 import offersReducer from "./slices/OfferSlice";
+import userReducer from "./slices/UserSlice";
 
 const persistConfig = {
   key: "root",
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   vehicleTypes: vehicleTypesReducer,
   orders: ordersReducer,
   offers: offersReducer,
+  user: userReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

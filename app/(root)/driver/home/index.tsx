@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import {
   Image,
   Modal,
@@ -26,42 +25,62 @@ import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
 import FilterIcon from "@/assets/icons/Driver/FilterIcon";
 import { Images, SYRIAN_CITIES } from "@/constants";
 import { OrderCard } from "@/components/driver/OrderCard";
+import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
+import { getUser } from "@/redux/slices/UserSlice";
 
 export default function Home() {
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      fromLocation: "",
-      toLocation: "",
-      cargoType: "",
-      weight: "",
-      dateNtime: new Date(),
-      vehicleType: "",
-      vehicleTypeId: "",
-    },
-  });
-
   const { user, role } = useSelector((state: RootState) => state.auth);
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
   const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
   const dispatch = useDispatch<AppDispatch>();
-
-  console.log("User:", user);
-  console.log("Role:", role);
-
+  const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes)
+  const filteredOffers = orders.filter((order)=>order.vehicle_type.type === vehicleType?.type)
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCity, setSelectedCity] = useState("حلب");
   const [searchText, setSearchText] = useState("");
   const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
   const [filterCity, setFilterCity] = useState("الكل");
+  const [resolvedOrders, setResolvedOrders] = useState(orders);
 
   useEffect(() => {
     dispatch(getAllOrders());
   }, [dispatch]);
+
+    useEffect(() => {
+      if (user && user.id) {
+        dispatch(getUser(user.id));
+      }
+    }, [dispatch, user]);
+
+  useEffect(() => {
+    if (user?.vehicleType) {
+      dispatch(getVehicleTypeById(user.vehicleType));
+    }
+  }, [dispatch, user]);
+
+  useEffect(() => {
+    const resolveVehicleTypes = async () => {
+      const updatedOrders = await Promise.all(
+        orders.map(async (order) => {
+          if (typeof order.vehicle_type === "string") {
+            try {
+              const action = await dispatch(getVehicleTypeById(order.vehicle_type));
+              const vehicleTypeData = action.payload as { _id: string; type: string; description: string; image: string };
+              return { ...order, vehicle_type: vehicleTypeData };
+            } catch (error) {
+              console.error(`Failed to fetch vehicle type for order ${order._id}:`, error);
+              return order;
+            }
+          }
+          return order;
+        })
+      );
+      setResolvedOrders(updatedOrders);
+    };
+
+    resolveVehicleTypes();
+  }, [orders, dispatch]);
+
 
   useEffect(() => {
     if (ordersError) {
@@ -74,20 +93,16 @@ export default function Home() {
     }
   }, [ordersError, offersError, dispatch]);
 
-  const filteredOrders = filterCity === "الكل"
-    ? orders
-    : orders.filter((order) => order.from_location.includes(filterCity));
 
   const handleOfferSubmit = async (data: { amount: number }, orderDetails: any) => {
     try {
       const offerData = {
         order_id: orderDetails._id,
         price: data.amount,
-        notes: "I can pick up within 1 hour",
+        notes: "",
       };
       await dispatch(createOffer(offerData)).unwrap();
-      // Reset offersStatus after successful submission
-      dispatch(clearError()); // Assuming clearError resets status to "idle"
+      dispatch(clearError());
     } catch (error) {
       console.error("Failed to submit offer:", error);
     } finally {
@@ -95,7 +110,6 @@ export default function Home() {
     }
   };
 
-  // Skeleton Loader Component (unchanged)
   const SkeletonCard = () => {
     const opacity = useSharedValue(0.3);
 
@@ -160,6 +174,8 @@ export default function Home() {
       </Animated.View>
     );
   };
+
+
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -254,9 +270,6 @@ export default function Home() {
             justifyContent: "space-between",
           }}
         >
-          <TouchableOpacity onPress={()=>dispatch(clearError())}>
-            <Text>clear</Text>
-          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
             style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
@@ -317,7 +330,7 @@ export default function Home() {
           />
         ) : (
           <FlatList
-            data={filteredOrders}
+            data={filteredOffers}
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <OrderCard
@@ -333,10 +346,11 @@ export default function Home() {
             )}
             ListEmptyComponent={
               <View style={{ alignItems: "center", paddingTop: 166 }}>
-                <Image source={Images.emptyImg} style={{ marginBottom: 24 }} />
+                <Image resizeMode="contain" source={Images.emptyImg} style={{ marginBottom: 24 }} />
+                <Text style={{ fontWeight: 700, fontSize: 18, color: "#878A8E" }}>لا يوجد طلبات حاليا</Text>
               </View>
             }
-            style={{ marginTop: 24 }}
+            style={{ marginTop: 24, marginBottom: 65 }}
           />
         )}
       </View>

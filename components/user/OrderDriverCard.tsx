@@ -12,6 +12,7 @@ import PositionIcon from "@/assets/icons/Driver/PositionIcon";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import ProductIcon from "@/assets/icons/user/OneProcuct";
 import { router } from "expo-router";
+import ConfirmationIcon from "@/assets/icons/user/ConfirmationIcon";
 
 export const OrderDriverCard = ({
   from,
@@ -19,14 +20,16 @@ export const OrderDriverCard = ({
   weight,
   dateTime,
   type,
-  orderId
+  orderId,
+  status
 }: {
   from: string;
   to: string;
   weight: string;
   dateTime: string;
   type: string;
-  orderId:string
+  orderId: string;
+  status: string
 }) => {
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
@@ -51,7 +54,15 @@ export const OrderDriverCard = ({
           width: "100%",
         }}
       >
-        <ProductIcon />
+        {status === "Pending" ?
+          (
+            <ProductIcon />
+          )
+          :
+          (
+          <ConfirmationIcon />
+        )
+        }
         <View
           style={{
             flexDirection: "column",

@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {
-    Modal,
     Text,
     TouchableOpacity,
     View,
     StyleSheet,
-    TextInput,
-    ActivityIndicator,
+    Linking,
 } from "react-native";
-import { useForm, Controller } from "react-hook-form";
 
 import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
 import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
@@ -17,25 +14,30 @@ import PositionIcon from "@/assets/icons/Driver/PositionIcon";
 import TruckIconSmall from "@/assets/icons/Driver/TruckIconSmall";
 import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
-import TrueFurnIcon from "@/assets/icons/Driver/TrueFurnIcon";
-import PriceInputIcon from "@/assets/icons/Driver/PriceInputIcon";
-import ConfirmationIcon from "@/assets/icons/Driver/ConfirmationIcon";
-import ConfirmationStartIcon from "@/assets/icons/Driver/ConfrimationStarIcon";
 import PendingIcon from "@/assets/icons/Driver/PendingIcon";
 import ExpiredIcon from "@/assets/icons/Driver/ExpiredIcon";
 import CompletedIcon from "@/assets/icons/Driver/CompleteIcon";
 import HeadsetPhoneIcon from "@/assets/icons/Driver/HeadsetPhoneIcon";
 import MoneyIcon from "@/assets/icons/Driver/MoneyIcon";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
 
 export const OfferCard = ({
+    offerId,
     from,
     to,
     weight,
     dateTime,
     type,
     vehicle,
-    status
+    status,
+    price,
+    notes,
+    originalStatus,
+    phoneNumber
 }: {
+    offerId: string;
     from: string;
     to: string;
     weight: string;
@@ -43,16 +45,25 @@ export const OfferCard = ({
     type: string;
     vehicle: string;
     status: string;
+    price: number;
+    notes?: string;
+    originalStatus: string;
+    phoneNumber:string
 }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [confirmationVisible, setConfirmationVisible] = useState(false);
+    const { user } = useSelector((state: RootState) => state.auth)
+    const dispatch = useDispatch<AppDispatch>()
+    const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes)
+    const { offers } = useSelector((state: RootState) => state.offers)
     const [loading, setLoading] = useState(false);
+    console.log("status", status);
 
-    const { control, handleSubmit, watch } = useForm<{ amount: string }>({
-        defaultValues: { amount: "" },
-    });
+// console.log("phoneNumber",phoneNumber);
 
-    const amountValue = watch("amount");
+
+
+
     useEffect(() => {
         if (confirmationVisible) {
             const timer = setTimeout(() => {
@@ -62,16 +73,30 @@ export const OfferCard = ({
             return () => clearTimeout(timer);
         }
     }, [confirmationVisible]);
-    const onSubmit = async (data: { amount: string }) => {
-        setLoading(true);
 
-        // Mock API call
-        setTimeout(() => {
-            setLoading(false);
-            setModalVisible(false); // close details modal
-            setConfirmationVisible(true); // open confirmation modal
-            console.log("Offer submitted:", data.amount);
-        }, 1500);
+    useEffect(() => {
+        if (type) {
+            dispatch(getVehicleTypeById(type));
+        }
+    }, [dispatch, user]);
+
+
+
+    const handleViewDetails = () => {
+        setModalVisible(true);
+    };
+
+    const renderStatusIcon = () => {
+        switch (status) {
+            case 'Pending':
+                return <PendingIcon />;
+            case 'Accepted':
+                return <CompletedIcon />;
+            case 'expired':
+                return <ExpiredIcon />;
+            default:
+                return <PendingIcon />;
+        }
     };
 
     const renderCardContent = (showExtraRow = false, showForm = false) => (
@@ -86,13 +111,12 @@ export const OfferCard = ({
                 alignItems: "flex-end",
                 marginBottom: 12,
                 backgroundColor: "white",
-                
+
             }}
         >
             <View style={{ marginBottom: 17, flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
                 <View>
-                    {status === 'pending' ?
-                        (<PendingIcon />) : status === 'expired' ? (<ExpiredIcon />) : (<CompletedIcon />)}
+                    {renderStatusIcon()}
                 </View>
                 <View
                     style={{
@@ -128,7 +152,7 @@ export const OfferCard = ({
             </View>
             <View style={[styles.rowBetween, { marginTop: 16 }]}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
-                    <Text style={styles.text}>{vehicle}</Text>
+                    <Text style={styles.text}>{vehicleType?.type}</Text>
                     <TruckIconSmall width={16} height={16} color={"gray"} />
                 </View>
                 <View style={{ flexDirection: "row", gap: 12 }}>
@@ -138,38 +162,40 @@ export const OfferCard = ({
             </View>
 
             {/* Button or Input */}
-
             <View
                 style={{
                     width: "100%",
                     marginTop: 16,
                     flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: status !== "confirmed" ? "center":"space-between"
+                    justifyContent: status !== "Accepted" ? "center" : "space-between"
                 }}
             >
-                {status === "confirmed" ? (
+                {status === "Accepted" ? (
                     <>
                         <TouchableOpacity
                             style={{ width: 102, height: 46, borderRadius: 8, backgroundColor: "#00CD00", gap: 8, flexDirection: "row", justifyContent: "center", alignItems: "center" }}
+                            onPress={()=>Linking.openURL(`tel:${phoneNumber}`)}
                         >
                             <Text style={{ fontWeight: 800, fontSize: 14, color: "white" }}>اتصال</Text>
                             <HeadsetPhoneIcon />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={{ width: 210, height: 46, borderRadius: 8, borderWidth: 1, borderColor: "#0077B6", gap: 16, flexDirection: "row", justifyContent: "center", alignItems: "center" }}
+                            onPress={handleViewDetails}
                         >
-                            <Text style={styles.buttonFilledText}>120 ليرة سورية</Text>
+                            <Text style={styles.buttonFilledText}>{price} ليرة سورية</Text>
                             <MoneyIcon />
                         </TouchableOpacity>
                     </>
-                ) : status === "pending" ?
+                ) : status === "Pending" ?
                     (
                         <>
                             <TouchableOpacity
                                 style={{ width: "100%", height: 46, borderRadius: 8, borderWidth: 1, borderColor: "#0077B6", gap: 16, flexDirection: "row", justifyContent: "center", alignItems: "center" }}
+                                onPress={handleViewDetails}
                             >
-                                <Text style={styles.buttonFilledText}>120 ليرة سورية</Text>
+                                <Text style={styles.buttonFilledText}>{price} ليرة سورية</Text>
                                 <MoneyIcon />
                             </TouchableOpacity>
                         </>
@@ -179,49 +205,20 @@ export const OfferCard = ({
                         <>
                             <TouchableOpacity
                                 style={{ width: "100%", height: 46, borderRadius: 8, borderWidth: 1, borderColor: "#0077B6", gap: 16, flexDirection: "row", justifyContent: "center", alignItems: "center" }}
+                                onPress={handleViewDetails}
                             >
-                                <Text style={styles.buttonFilledText}>120 ليرة سورية</Text>
+                                <Text style={styles.buttonFilledText}>{price} ليرة سورية</Text>
                                 <MoneyIcon />
                             </TouchableOpacity>
                         </>
                     )}
-
-
             </View>
         </View>
     );
-
     return (
         <>
             {/* Normal Card */}
             {renderCardContent(false, false)}
-
-            {/* Details Modal */}
-            <Modal
-                visible={modalVisible}
-                transparent
-                animationType="slide"
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    {renderCardContent(true, true)}
-                </View>
-            </Modal>
-
-            {/* Confirmation Modal */}
-            <Modal
-                visible={confirmationVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setConfirmationVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.confirmBox}>
-                        <ConfirmationStartIcon color={"black"} />
-                        <Text style={styles.confirmTitle}>تم تقديم عرضك للطلب بنجاح</Text>
-                    </View>
-                </View>
-            </Modal>
         </>
     );
 };
