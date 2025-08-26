@@ -33,14 +33,15 @@ const initialState: UserState = {
 
 export const getUserById = createAsyncThunk<
     User,
-    { id: string; role: 'user' | 'driver' },
+    { id: string; role: 'router' | 'driver' },
     { rejectValue: string }
 >("user/getUser", async ({ id, role }, { rejectWithValue }) => {
     try {
         const response = await apiService.get<User>(`/api/user/${id}?role=${role}`);
-        console.log("userdataaaaaaaaaaaaa", response);
+        console.log("getUserById", response);
         return response;
     } catch (error: any) {
+        console.log("getUserByIderror", error);
         return rejectWithValue(
             error.response?.data?.message || error.message || "Failed to fetch user"
         );

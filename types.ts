@@ -1,4 +1,4 @@
-export type Role = "user" | "driver";
+export type Role = "router" | "driver";
 
 
 export interface BaseUser {

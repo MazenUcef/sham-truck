@@ -69,6 +69,13 @@ const OrderDetails = () => {
     fetchOrderDetails();
   }, [id, dispatch]);
 
+console.log("order",order);
+
+useEffect(()=>{
+  if(order){
+    dispatch(getVehicleTypeById(order.vehicle_type))
+  }
+},[order])
 
   const handleAcceptOffer = async (offer: Offer) => {
     if (typeof id === "string") {
@@ -359,8 +366,8 @@ const OrderDetails = () => {
               <View style={{ flexDirection: "row", gap: 12 }}>
                 <Text style={styles.text}>
                   {typeof order.vehicle_type === "string"
-                    ? tyo?.type
-                    : order.vehicle_type?.type || "شاحنة عادية"}
+                    ? tyo?.category
+                    : "غير محدد"}
                 </Text>
                 <TruckIconSmall width={16} height={16} color={"gray"} />
               </View>

@@ -36,7 +36,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (user && user.id) {
-            dispatch(getUserById({ id: user.id, role: "user" }));
+            dispatch(getUserById({ id: user.id, role: "router" }));
         }
     }, [dispatch, user, setValue]);
     useEffect(() => {
@@ -69,7 +69,7 @@ export default function ProfilePage() {
             console.log("Update successful:", updateResult);
 
 
-            await dispatch(getUserById({ id: user.id, role: "user" })).unwrap();
+            await dispatch(getUserById({ id: user.id, role: "router" })).unwrap();
             alert("تم حفظ التغييرات بنجاح ✅");
         } catch (error: any) {
             console.error("Update failed:", error);

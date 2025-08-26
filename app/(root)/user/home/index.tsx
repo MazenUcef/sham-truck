@@ -52,40 +52,32 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'عادية' | 'مغلقة' | 'مبردة'>('عادية');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  console.log("userrrrrrrrr", user);
+
 
 
 
   useEffect(() => {
+    console.log("userrrrrrrrr", user);
+    console.log("useUserDatarrrrrrrrr", UserData);
     if (user && user.id) {
-      dispatch(getUserById({ id: user.id, role: "user" }));
+      dispatch(getUserById({ id: user.id, role: "router" }));
     }
-  }, []);
-
-  console.log("user", user);
-  console.log("UserData", UserData);
+  }, [dispatch, user]);
 
 
   const opacity = useSharedValue(0.3);
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(opacity.value, { duration: 1000 }),
-  }));
 
   useEffect(() => {
     dispatch(getUserOrders());
     dispatch(fetchVehicleTypes());
   }, [dispatch]);
-console.log("vehicleTypes",vehicleTypes);
-console.log("vehicleTypes.length",vehicleTypes.length);
+  // console.log("vehicleTypes",vehicleTypes);
+  // console.log("vehicleTypes.length",vehicleTypes.length);
 
   useEffect(() => {
     if (ordersError) {
       console.error("Orders error:", ordersError);
       dispatch(clearOrdersError());
-    }
-    if (vehicleError) {
-      console.error("Vehicle types error:", vehicleError);
-      dispatch(clearVehicleError());
     }
   }, [ordersError, vehicleError, dispatch]);
 
@@ -139,8 +131,8 @@ console.log("vehicleTypes.length",vehicleTypes.length);
   };
 
   const onSubmit = async (data: any) => {
-    console.log("dataaaaa",data);
-    
+    console.log("dataaaaa", data);
+
     try {
       const orderData = {
         from_location: data.fromLocation,
@@ -152,8 +144,8 @@ console.log("vehicleTypes.length",vehicleTypes.length);
         notes: data.notes,
         type: data.cargoType,
       };
-      console.log("orderData",orderData);
-      
+      console.log("orderData", orderData);
+
       await dispatch(createOrder(orderData)).unwrap();
       console.log('Order created successfully');
       setSuccessModalVisible(true);
@@ -172,32 +164,32 @@ console.log("vehicleTypes.length",vehicleTypes.length);
 
   const formatDateTime = (dateTime: string | Date | undefined): string => {
     if (!dateTime) return "غير محدد";
-  
+
     try {
       const date = typeof dateTime === "string" ? new Date(dateTime) : dateTime;
       if (isNaN(date.getTime())) return "غير محدد";
-  
+
       // Format date and time separately for better control
       const dateFormatter = new Intl.DateTimeFormat("ar-EG", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
-  
+
       const timeFormatter = new Intl.DateTimeFormat("ar-EG", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
       });
-  
+
       const formattedDate = dateFormatter.format(date);
       let formattedTime = timeFormatter.format(date);
-  
+
       // Replace English AM/PM with Arabic equivalents
       formattedTime = formattedTime
         .replace("AM", "ص")
         .replace("PM", "م");
-  
+
       return `${formattedDate} ${formattedTime}`;
     } catch (error) {
       console.error("Date formatting error:", error);
@@ -439,6 +431,8 @@ console.log("vehicleTypes.length",vehicleTypes.length);
                     onConfirm={handleConfirm}
                     onCancel={hideDatePicker}
                     date={date}
+                    minimumDate={new Date()}
+                    locale="ar-EG"
                   />
                 </View>
               </View>
@@ -551,7 +545,7 @@ console.log("vehicleTypes.length",vehicleTypes.length);
 
               <View style={[styles.vehicleTypesContainer, {}]}>
                 {vehicleStatus === "loading" ? (
-                  <Text style={{alignSelf:"flex-start"}}>جاري تحميل أنواع المركبات...</Text>
+                  <Text style={{ alignSelf: "flex-start" }}>جاري تحميل أنواع المركبات...</Text>
                 ) : vehicleTypes && vehicleTypes.length > 0 ? (
                   vehicleTypes
                     .filter((vehicle) => vehicle.category === activeTab)

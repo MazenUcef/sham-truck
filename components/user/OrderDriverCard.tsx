@@ -105,10 +105,7 @@ export const OrderDriverCard = ({
       <TouchableOpacity
         style={styles.buttonOutline}
         onPress={() =>
-          router.push({
-            pathname: "/(root)/order-details/[id]",
-            params: { id: orderId }
-          })
+          router.push(`/(root)/order-details/${orderId}`)
         }
       >
         <Text style={styles.buttonOutlineText}>عرض التفاصيل</Text>
