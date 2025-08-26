@@ -30,7 +30,6 @@ export const OfferCard = ({
     weight,
     dateTime,
     type,
-    vehicle,
     status,
     price,
     notes,
@@ -43,7 +42,6 @@ export const OfferCard = ({
     weight: string;
     dateTime: string;
     type: string;
-    vehicle: string;
     status: string;
     price: number;
     notes?: string;

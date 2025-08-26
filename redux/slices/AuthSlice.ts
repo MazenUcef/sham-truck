@@ -43,6 +43,8 @@ export const signupDriver = createAsyncThunk<
   { rejectValue: string }
 >("auth/signupDriver", async (formData, { rejectWithValue }) => {
   try {
+    console.log("formdataaaaaaaa",formData);
+    
     const response = await apiService.post<AuthResponse>("/api/auth/signup/driver", formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -50,6 +52,7 @@ export const signupDriver = createAsyncThunk<
     });
     return response;
   } catch (error: any) {
+    console.log(error)
     return rejectWithValue(
       error.response?.data?.message || error.message || "Driver registration failed"
     );

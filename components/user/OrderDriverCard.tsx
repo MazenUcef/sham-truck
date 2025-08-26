@@ -14,6 +14,10 @@ import ProductIcon from "@/assets/icons/user/OneProcuct";
 import { router } from "expo-router";
 import ConfirmationIcon from "@/assets/icons/user/ConfirmationIcon";
 
+
+
+
+
 export const OrderDriverCard = ({
   from,
   to,
@@ -31,6 +35,8 @@ export const OrderDriverCard = ({
   orderId: string;
   status: string
 }) => {
+  console.log(dateTime);
+  
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
       style={{

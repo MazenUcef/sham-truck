@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Images } from '@/constants'
 import UserIcon from '@/assets/icons/Auth/UserIcon'
 import AutoIcon from '@/assets/icons/Auth/AutoIcon'
@@ -8,9 +8,19 @@ import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
 
 export default function Auth() {
-    const { isAuthenticated ,user} = useSelector((state: RootState) => state.auth)
-    console.log(isAuthenticated,user);
-    
+    const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
+    console.log("isAuthenticated", isAuthenticated);
+
+    useEffect(() => {
+        if (isAuthenticated && user?.role) {
+            if (user?.role === "user") {
+                router.replace('/(root)/user/home')
+            } else {
+                router.replace('/(root)/driver/home')
+            }
+        }
+    }, []);
+
     const handlePress = (role: 'driver' | 'user') => {
         router.push({
             pathname: '/(auth)/signup',

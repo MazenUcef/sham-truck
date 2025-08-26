@@ -21,6 +21,7 @@ import TrueFurnIcon from "@/assets/icons/Driver/TrueFurnIcon";
 import PriceInputIcon from "@/assets/icons/Driver/PriceInputIcon";
 import ConfirmationStartIcon from "@/assets/icons/Driver/ConfrimationStarIcon";
 import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
+import { Order } from "@/types";
 
 export const OrderCard = ({
   from,
@@ -38,19 +39,19 @@ export const OrderCard = ({
   dateTime: string;
   type: string;
   vehicle: string;
-  onOfferSubmit: (data: { amount: number }, orderDetails: any) => void;
+  onOfferSubmit: (data: { amount: number }, orderDetails: Order) => void;
   orderDetails: any;
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [lastSubmittedOrderId, setLastSubmittedOrderId] = useState<string | null>(null);
   const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
-
   const { control, handleSubmit, watch, reset } = useForm<{ amount: string }>({
     defaultValues: { amount: "" },
   });
 
   const amountValue = watch("amount");
+console.log("type",type);
 
   useEffect(() => {
     console.log("Offers Status:", offersStatus, "Error:", offersError, "Order ID:", orderDetails._id);
@@ -61,7 +62,7 @@ export const OrderCard = ({
     }
     if (offersStatus === "failed" && offersError && lastSubmittedOrderId === orderDetails._id) {
       console.error("Offer submission error:", offersError);
-      alert(`Error submitting offer: ${offersError}`);
+      alert(`${offersError}`);
     }
   }, [offersStatus, offersError, orderDetails._id, lastSubmittedOrderId, reset]);
 
@@ -84,6 +85,29 @@ export const OrderCard = ({
     setLastSubmittedOrderId(orderDetails._id);
     onOfferSubmit({ amount }, orderDetails);
   };
+  const formatDateTime = (dateTime: string | Date | undefined): string => {
+    if (!dateTime) return "غير محدد";
+
+    try {
+        const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
+        if (isNaN(date.getTime())) return "غير محدد";
+
+        return new Intl.DateTimeFormat('ar-EG', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+        }).format(date);
+    } catch (error) {
+        console.error("Date formatting error:", error);
+        return "غير محدد";
+    }
+};
+
+
+const displayDate = formatDateTime(dateTime);
 
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
@@ -135,7 +159,7 @@ export const OrderCard = ({
           <WeightFurnIcon />
         </View>
         <View style={{ flexDirection: "row", gap: 12 }}>
-          <Text style={styles.text}>{dateTime}</Text>
+          <Text style={styles.text}>{displayDate}</Text>
           <ClockIconMini />
         </View>
       </View>

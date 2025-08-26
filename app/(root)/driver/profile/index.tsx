@@ -20,33 +20,33 @@ import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
 import { logout } from "@/redux/slices/AuthSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getUser } from "@/redux/slices/UserSlice";
+import { getUserById } from "@/redux/slices/UserSlice";
+import { Driver, User } from "@/types";
 
 
 
 export default function Profile() {
-  const dispatch = useDispatch<AppDispatch>()
-  const { user } = useSelector((state: RootState) => state.auth)
-  const { user: userData } = useSelector((state: RootState) => state.user)
-
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const { user: userData } = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
-    if (user && user.id) {
-      dispatch(getUser(user.id));
+    if (user && user.id && user.role) {
+      dispatch(getUserById({ id: user.id, role: "driver" }));
     }
-  }, [dispatch, user]);
+  }, []);
 
-console.log("userData",userData);
+  const isDriver = (user: User | Driver | null): user is Driver => {
+    return (user as Driver)?.role === "driver";
+  };
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
-      <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "center"}}>
-        <Text style={{ fontWeight: 700, fontSize: 18, lineHeight: 24, color: "white" }}>
+      <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "center" }}>
+        <Text style={{ fontWeight: "700", fontSize: 18, lineHeight: 24, color: "white" }}>
           الملف الشخصي
         </Text>
       </View>
-
-
 
       <View
         style={{
@@ -59,19 +59,26 @@ console.log("userData",userData);
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 24, justifyContent: "flex-end", marginBottom: 24 }}>
           <View style={{ gap: 12, justifyContent: "flex-start", alignItems: "flex-end" }}>
-            <Text style={{ fontWeight: 700, fontSize: 18 }}>{userData?.fullName || user?.fullName}</Text>
-            <Text style={{ fontWeight: 500, fontSize: 16 }}>سائق</Text>
+            <Text style={{ fontWeight: "700", fontSize: 18 }}>{userData?.fullName || user?.fullName}</Text>
+            <Text style={{ fontWeight: "500", fontSize: 16 }}>سائق</Text>
           </View>
           <View>
-            <Image
-              source={Images.userImg}
+<Image
+              source={
+                userData && isDriver(userData) && userData.photo
+                  ? { uri: userData.photo }
+                  : Images.userImg
+              }
               style={{ width: 100, height: 100 }}
             />
           </View>
         </View>
         <View style={{ marginBottom: 64, gap: 24 }}>
           <TouchableOpacity
-            onPress={() => router.push("/(root)/driver/profile/profile-page")}
+            onPress={() => router.push({
+              pathname: "/(root)/driver/profile/profile-page",
+              params: { role: user?.role || 'user' }
+            })}
             style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
           >
             <ToRightIcon />
@@ -112,8 +119,8 @@ console.log("userData",userData);
         <View>
           <TouchableOpacity
             onPress={async () => {
-              await dispatch(logout())
-              router.replace("/(auth)")
+              await dispatch(logout());
+              router.replace("/(auth)");
             }}
             style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
           >

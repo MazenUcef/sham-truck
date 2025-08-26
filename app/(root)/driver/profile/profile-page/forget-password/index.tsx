@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Controller, FieldError, useForm } from "react-hook-form";
 import {
+    ActivityIndicator,
     StyleSheet,
     Text,
     TextInput,
@@ -11,8 +12,15 @@ import { router } from "expo-router";
 import RightIcon from "@/assets/icons/Driver/RightIcon";
 import { Ionicons } from "@expo/vector-icons";
 import LockIcon from "@/assets/icons/Auth/LockIcon";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { changePassword, ChangePasswordData } from "@/redux/slices/UserSlice";
 
 export default function ForgetPassword() {
+    const dispatch = useDispatch<AppDispatch>();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const { status } = useSelector((state: RootState) => state.user);
+
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -37,9 +45,27 @@ export default function ForgetPassword() {
         return error ? error.message || "هذا الحقل مطلوب" : null;
     };
 
-    const onSubmit = (data: any) => {
-        console.log("Submitted Data:", data);
-        alert("تم حفظ التغييرات بنجاح ✅");
+    const onSubmit = async (data: any) => {
+        if (!user || !user.id || !user.role) {
+            alert("فشل في تغيير كلمة المرور: لا يوجد مستخدم مسجل الدخول أو دور المستخدم غير محدد");
+            return;
+        }
+
+        const passwordData: ChangePasswordData = {
+            currentPassword: data.currentPassword,
+            newPassword: data.newPassword,
+            role: "driver",
+        };
+console.log("password data",passwordData);
+
+        try {
+            await dispatch(changePassword({ id: user.id, passwordData })).unwrap();
+            alert("تم تغيير كلمة المرور بنجاح ✅");
+            router.back();
+        } catch (error: any) {
+            console.error("Password change failed:", error);
+            alert("فشل في تغيير كلمة المرور: " + (error || "خطأ غير معروف"));
+        }
     };
 
     return (
@@ -213,9 +239,14 @@ export default function ForgetPassword() {
                 <View>
                     <TouchableOpacity
                         onPress={handleSubmit(onSubmit)}
+                        disabled={status === "loading"}
                         style={styles.submitButton}
                     >
-                        <Text style={styles.submitText}>حفظ التغييرات</Text>
+                        {status === "loading" ? (
+                            <ActivityIndicator size="small" color="white" />
+                        ) : (
+                            <Text style={styles.submitText}>حفظ التغييرات</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>

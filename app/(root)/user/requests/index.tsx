@@ -80,7 +80,28 @@ const SkeletonOfferUserCard = () => {
 const Requests = () => {
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
   const dispatch = useDispatch<AppDispatch>();
-  console.log(orders);
+  console.log("order",orders);
+
+    const formatDateTime = (dateTime: string | Date | undefined): string => {
+    if (!dateTime) return "غير محدد";
+
+    try {
+      const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
+      if (isNaN(date.getTime())) return "غير محدد";
+
+      return new Intl.DateTimeFormat('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }).format(date);
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "غير محدد";
+    }
+  };
   
 
   useEffect(() => {
@@ -108,7 +129,7 @@ const Requests = () => {
       from={item?.from_location || "غير محدد"}
       to={item?.to_location || "غير محدد"}
       weight={item?.weight_or_volume || "0 kg"}
-      dateTime={item?.date_time_transport || item?.createdAt || "غير محدد"}
+      dateTime={formatDateTime(item?.date_time_transport) || item?.createdAt || "غير محدد"}
       orderId={item?._id}
       status={item?.status}
     />

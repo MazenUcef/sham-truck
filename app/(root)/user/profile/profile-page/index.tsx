@@ -16,7 +16,7 @@ import GrayUserIcon from "@/assets/icons/Auth/GrayUserIcon";
 import MessageIcon from "@/assets/icons/Auth/MessageIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getUser, updateUser, UserUpdate } from "@/redux/slices/UserSlice";
+import { getUserById, updateUser, UserUpdate } from "@/redux/slices/UserSlice";
 
 export default function ProfilePage() {
     const dispatch = useDispatch<AppDispatch>();
@@ -36,7 +36,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (user && user.id) {
-            dispatch(getUser(user.id));
+            dispatch(getUserById({ id: user.id, role: "user" }));
         }
     }, [dispatch, user, setValue]);
     useEffect(() => {
@@ -64,12 +64,12 @@ export default function ProfilePage() {
         };
 
         try {
-            // Dispatch updateUser thunk
+
             const updateResult = await dispatch(updateUser({ id: user.id, userData })).unwrap();
             console.log("Update successful:", updateResult);
 
-            // After successful update, fetch the updated user data
-            await dispatch(getUser(user.id)).unwrap();
+
+            await dispatch(getUserById({ id: user.id, role: "user" })).unwrap();
             alert("تم حفظ التغييرات بنجاح ✅");
         } catch (error: any) {
             console.error("Update failed:", error);
@@ -198,7 +198,7 @@ export default function ProfilePage() {
                     </TouchableOpacity>
                 </View>
                 <View>
-<TouchableOpacity
+                    <TouchableOpacity
                         onPress={handleSubmit(onSubmit)}
                         disabled={status === "loading"}
                         style={{

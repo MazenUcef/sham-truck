@@ -25,61 +25,37 @@ import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
 import FilterIcon from "@/assets/icons/Driver/FilterIcon";
 import { Images, SYRIAN_CITIES } from "@/constants";
 import { OrderCard } from "@/components/driver/OrderCard";
-import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
-import { getUser } from "@/redux/slices/UserSlice";
+import { getUserById } from "@/redux/slices/UserSlice";
 
 export default function Home() {
   const { user, role } = useSelector((state: RootState) => state.auth);
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
   const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
   const dispatch = useDispatch<AppDispatch>();
-  const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes)
-  const filteredOffers = orders.filter((order)=>order.vehicle_type.type === vehicleType?.type)
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCity, setSelectedCity] = useState("حلب");
   const [searchText, setSearchText] = useState("");
   const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
   const [filterCity, setFilterCity] = useState("الكل");
-  const [resolvedOrders, setResolvedOrders] = useState(orders);
+  const { offers, status, error } = useSelector((state: RootState) => state.offers);
+console.log("offersssssss",offers);
+console.log("ordersssssss",orders);
+
+
+
 
   useEffect(() => {
     dispatch(getAllOrders());
   }, [dispatch]);
 
-    useEffect(() => {
-      if (user && user.id) {
-        dispatch(getUser(user.id));
-      }
-    }, [dispatch, user]);
-
   useEffect(() => {
-    if (user?.vehicleType) {
-      dispatch(getVehicleTypeById(user.vehicleType));
+    if (user && user.id) {
+      dispatch(getUserById({ id: user.id, role: "driver" }));
     }
   }, [dispatch, user]);
 
-  useEffect(() => {
-    const resolveVehicleTypes = async () => {
-      const updatedOrders = await Promise.all(
-        orders.map(async (order) => {
-          if (typeof order.vehicle_type === "string") {
-            try {
-              const action = await dispatch(getVehicleTypeById(order.vehicle_type));
-              const vehicleTypeData = action.payload as { _id: string; type: string; description: string; image: string };
-              return { ...order, vehicle_type: vehicleTypeData };
-            } catch (error) {
-              console.error(`Failed to fetch vehicle type for order ${order._id}:`, error);
-              return order;
-            }
-          }
-          return order;
-        })
-      );
-      setResolvedOrders(updatedOrders);
-    };
 
-    resolveVehicleTypes();
-  }, [orders, dispatch]);
+  console.log("ordersssssss", orders);
 
 
   useEffect(() => {
@@ -330,12 +306,12 @@ export default function Home() {
           />
         ) : (
           <FlatList
-            data={filteredOffers}
+            data={orders.filter((item) => new Date(item.date_time_transport) > new Date())}
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <OrderCard
-                type={item.vehicle_type.type}
-                vehicle={item.vehicle_type.description}
+                type={item.type}
+                vehicle={item.vehicle_type.category}
                 from={item.from_location}
                 to={item.to_location}
                 weight={item.weight_or_volume}

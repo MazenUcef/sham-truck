@@ -29,6 +29,8 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-na
 import { Offer, Order } from "@/types";
 import { clearError as clearOrdersError, getOrderById } from "@/redux/slices/OrdersSlice";
 import { acceptOffer, clearError as clearOffersError, getOrderOffers } from "@/redux/slices/OfferSlice";
+import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
+import LeftIcon from "@/assets/icons/Auth/LeftIcon";
 
 const OrderDetails = () => {
   const { id } = useLocalSearchParams();
@@ -46,8 +48,10 @@ const OrderDetails = () => {
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const { status: orderStatus, error: orderError } = useSelector((state: RootState) => state.orders);
+  const { vehicleType: tyo } = useSelector((state: RootState) => state.vehicleTypes);
   const { status: offersStatus, error: offersError, offers: fetchedOffers } = useSelector((state: RootState) => state.offers);
   console.log("fetched offers", fetchedOffers);
+  console.log("tyo", tyo);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -64,6 +68,7 @@ const OrderDetails = () => {
     };
     fetchOrderDetails();
   }, [id, dispatch]);
+
 
   const handleAcceptOffer = async (offer: Offer) => {
     if (typeof id === "string") {
@@ -218,17 +223,47 @@ const OrderDetails = () => {
     }]);
   }
 
+
+
+
+  const formatDateTime = (dateTime: string | Date | undefined): string => {
+    if (!dateTime) return "غير محدد";
+
+    try {
+      const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
+      if (isNaN(date.getTime())) return "غير محدد";
+
+      return new Intl.DateTimeFormat('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }).format(date);
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "غير محدد";
+    }
+  };
+
+
+  const displayDate = formatDateTime(order?.date_time_transport || order?.createdAt);
+
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
       <View
         style={{
           marginBottom: 40,
           flexDirection: "row",
-          alignSelf: "flex-end",
-          gap: 85,
-          marginRight: 29,
+          alignSelf: "flex-start",
+          gap:105,
+          marginLeft: 29,
         }}
       >
+        <TouchableOpacity onPress={() => router.back()}>
+          <LeftIcon />
+        </TouchableOpacity>
         <Text
           style={{
             fontWeight: "700",
@@ -239,9 +274,6 @@ const OrderDetails = () => {
         >
           تفاصيل الطلب
         </Text>
-        <TouchableOpacity onPress={() => router.back()}>
-          <RightIcon />
-        </TouchableOpacity>
       </View>
 
       <View
@@ -317,7 +349,7 @@ const OrderDetails = () => {
               </View>
               <View style={{ flexDirection: "row", gap: 12 }}>
                 <Text style={styles.text}>
-                  {order.date_time_transport || order.createdAt || "غير محدد"}
+                  {displayDate || "غير محدد"}
                 </Text>
                 <ClockIconMini />
               </View>
@@ -327,7 +359,7 @@ const OrderDetails = () => {
               <View style={{ flexDirection: "row", gap: 12 }}>
                 <Text style={styles.text}>
                   {typeof order.vehicle_type === "string"
-                    ? order.vehicle_type
+                    ? tyo?.type
                     : order.vehicle_type?.type || "شاحنة عادية"}
                 </Text>
                 <TruckIconSmall width={16} height={16} color={"gray"} />

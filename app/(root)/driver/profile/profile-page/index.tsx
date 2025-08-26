@@ -10,26 +10,21 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import RightIcon from "@/assets/icons/Driver/RightIcon";
-import UserIcon from "@/assets/icons/Driver/UserIcon";
-import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
-import PhoneIcon from "@/assets/icons/Auth/PhoneIcon";
 import GrayUserIcon from "@/assets/icons/Auth/GrayUserIcon";
 import MessageIcon from "@/assets/icons/Auth/MessageIcon";
+import PhoneIcon from "@/assets/icons/Auth/PhoneIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getUser, updateUser } from "@/redux/slices/UserSlice";
-import { UserUpdate } from "@/types";
-
-
+import { getUserById, updateUser, UserUpdate } from "@/redux/slices/UserSlice";
+import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
 
 export default function ProfilePage() {
     const dispatch = useDispatch<AppDispatch>();
     const { user } = useSelector((state: RootState) => state.auth);
-    const { user: UserData, status } = useSelector((state: RootState) => state.user);
-    console.log("user data", UserData);
-    console.log(user?.id);
-    console.log(user);
-    
+    const { user: userData, status } = useSelector((state: RootState) => state.user);
+
+    console.log("user?.id", user?.id);
+    console.log("userData", userData);
 
     const methods = useForm({
         mode: 'onChange',
@@ -42,26 +37,25 @@ export default function ProfilePage() {
     const { control, formState: { errors }, handleSubmit, setValue } = methods;
 
     useEffect(() => {
-        if (user && user.id) {
-            dispatch(getUser(user.id));
+        if (user && user.id && user.role) {
+            dispatch(getUserById({ id: user.id, role: "driver" }));
         }
-    }, [dispatch, user]);
+    }, []);
 
     useEffect(() => {
-        if (UserData) {
-            setValue("fullName", UserData?.fullName);
-            setValue("email", UserData?.email);
-            setValue("phone", UserData?.phoneNumber);
+        if (userData) {
+            setValue("fullName", userData.fullName);
+            setValue("email", userData.email);
+            setValue("phone", userData.phoneNumber);
         }
-    }, [UserData, setValue]);
+    }, [userData, setValue]);
 
     const getErrorMessage = (error: FieldError | undefined): string | null => {
         return error ? error.message || 'هذا الحقل مطلوب' : null;
     };
 
     const onSubmit = async (data: any) => {
-        console.log("Submitted Data:", data);
-        if (!user || !user.id) {
+        if (!user || !user.id || !user.role) {
             alert("فشل في حفظ التغييرات: لا يوجد مستخدم مسجل الدخول");
             return;
         }
@@ -70,15 +64,18 @@ export default function ProfilePage() {
             fullName: data.fullName,
             email: data.email,
             phoneNumber: data.phone,
+            vehicleNumber: data.vehicleNumber,
+            vehicleType: data.vehicleType,
+            role: "driver"
         };
+        console.log("userrrrrrrrrrrrrrrrr", user);
 
         try {
-            // Dispatch updateUser thunk
-            const updateResult = await dispatch(updateUser({ id: user.id, userData })).unwrap();
+            const updateResult = await dispatch(
+                updateUser({ id: user.id, userData })
+            ).unwrap();
             console.log("Update successful:", updateResult);
-
-            // After successful update, fetch the updated user data
-            await dispatch(getUser(user.id)).unwrap();
+            await dispatch(getUserById({ id: user.id, role: user.role })).unwrap();
             alert("تم حفظ التغييرات بنجاح ✅");
         } catch (error: any) {
             console.error("Update failed:", error);
@@ -175,9 +172,7 @@ export default function ProfilePage() {
                                         placeholder='رقم الهاتف'
                                         keyboardType="phone-pad"
                                         onBlur={onBlur}
-                                        onChangeText={(text) => {
-                                            onChange(text);
-                                        }}
+                                        onChangeText={onChange}
                                         value={value}
                                     />
                                 )}
@@ -197,7 +192,7 @@ export default function ProfilePage() {
                 />
                 <View style={{ marginBottom: 33, gap: 24 }}>
                     <TouchableOpacity
-                        onPress={() => router.push("/(root)/user/profile/profile-page/forget-password")}
+                        onPress={() => router.push("/(root)/driver/profile/profile-page/forget-password")}
                         style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
                     >
                         <ToRightIcon />

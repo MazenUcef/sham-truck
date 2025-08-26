@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiService } from "@/config";
-import { User } from "@/types";
+import { AuthUser, User } from "@/types";
 
 interface UserState {
-    user: User | null;
+    user: AuthUser | null;
     status: "idle" | "loading" | "succeeded" | "failed";
     error: string | null;
 }
@@ -13,11 +13,16 @@ export interface UserUpdate {
     fullName?: string;
     email?: string;
     phoneNumber?: string;
+    vehicleNumber?: string;
+    vehicleType?: string;
+    photo?: string;
+    role?:string
 }
 
 export interface ChangePasswordData {
     currentPassword: string;
     newPassword: string;
+    role?: 'router' | 'driver';
 }
 
 const initialState: UserState = {
@@ -26,13 +31,14 @@ const initialState: UserState = {
     error: null,
 };
 
-export const getUser = createAsyncThunk<
+export const getUserById = createAsyncThunk<
     User,
-    string,
+    { id: string; role: 'user' | 'driver' },
     { rejectValue: string }
->("user/getUser", async (id, { rejectWithValue }) => {
+>("user/getUser", async ({ id, role }, { rejectWithValue }) => {
     try {
-        const response = await apiService.get<User>(`/api/user/${id}`);
+        const response = await apiService.get<User>(`/api/user/${id}?role=${role}`);
+        console.log("userdataaaaaaaaaaaaa", response);
         return response;
     } catch (error: any) {
         return rejectWithValue(
@@ -42,8 +48,8 @@ export const getUser = createAsyncThunk<
 });
 
 export const updateUser = createAsyncThunk<
-    { message: string; user: User },
-    { id: string; userData: UserUpdate },
+    { message: string; user: AuthUser },
+    { id: string; userData: UserUpdate},
     { rejectValue: string }
 >("user/updateUser", async ({ id, userData }, { rejectWithValue }) => {
     try {
@@ -51,8 +57,12 @@ export const updateUser = createAsyncThunk<
             `/api/user/${id}`,
             userData
         );
+        console.log("update response",response);
+        
         return response;
     } catch (error: any) {
+        console.log("error update",error);
+        
         return rejectWithValue(
             error.response?.data?.message || error.message || "User update failed"
         );
@@ -85,24 +95,24 @@ const userSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
-        setUser: (state, action: PayloadAction<User | null>) => {
+        setUser: (state, action: PayloadAction<AuthUser | null>) => {
             state.user = action.payload;
         },
     },
     extraReducers: (builder) => {
         builder
             // Get user
-            .addCase(getUser.pending, (state) => {
+            .addCase(getUserById.pending, (state) => {
                 state.status = "loading";
                 state.error = null;
             })
-            .addCase(getUser.fulfilled, (state, action) => {
+            .addCase(getUserById.fulfilled, (state, action) => {
                 state.status = "succeeded";
                 state.user = action.payload;
                 state.error = null;
                 AsyncStorage.setItem("user", JSON.stringify(action.payload));
             })
-            .addCase(getUser.rejected, (state, action) => {
+            .addCase(getUserById.rejected, (state, action) => {
                 state.status = "failed";
                 state.error = action.payload || "Failed to fetch user";
             })

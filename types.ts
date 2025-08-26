@@ -1,19 +1,48 @@
-export interface User {
+export type Role = "user" | "driver";
+
+
+export interface BaseUser {
   id: string;
   fullName: string;
   email: string;
   phoneNumber: string;
-  role?: 'user' | 'driver';
-  vehicleNumber?: string;
-  vehicleType?: string;
-  photo?: string;
 }
 
-export interface Driver extends User {
+
+export interface User extends BaseUser {
+  role?: "user";
+}
+
+
+export interface Driver extends BaseUser {
+  role?: "driver";
   vehicleNumber: string;
-  vehicleType: string;
+  vehicleType: {
+    _id: string;
+    category: string;
+    type: string;
+    image: string;
+    imagePublicId: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  };
   photo: string;
 }
+
+
+export type AuthUser = User | Driver;
+
+
+export interface AuthState {
+  user: AuthUser | null;
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+  isAuthenticated: boolean;
+  token: string | null;
+  role: Role | null;
+}
+
 
 export interface AuthResponse {
   message: string;
@@ -22,35 +51,34 @@ export interface AuthResponse {
   driver?: Driver;
 }
 
-export interface AuthState {
-  user: User | null;
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
-  error: string | null;
-  isAuthenticated: boolean;
-  token: string | null;
-  role: string | null;
-}
 
 export interface UserRegistration {
   fullName: string;
   email: string;
   password: string;
   phoneNumber: string;
-  role:string
 }
 
-export interface DriverRegistration extends UserRegistration {
-  vehicleNumber: string;
-  vehicleType: string;
-  photo?: File;
-  vehicleTypeId?: string
-}
 
 export interface LoginCredentials {
   email: string;
   password: string;
-  role: 'user' | 'driver';
+  role: Role;
 }
+
+
+export interface DriverRegistration {
+  fullName: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  vehicleNumber: string;
+  vehicleTypeId: string;
+  [key: string]: string;
+}
+
+
+export type OrderStatus = "Pending" | "Active" | "Completed" | "Cancelled";
 
 
 export interface Customer {
@@ -60,20 +88,77 @@ export interface Customer {
   phoneNumber: string;
 }
 
+
+export interface VehicleType {
+  _id: string;
+  category: string;
+  type: string;
+  image: string;
+}
+
+
 export interface Order {
   _id: string;
-  customer_id: string | Customer;
+  customer_id: Customer;
   from_location: string;
   to_location: string;
-  vehicle_type: string | { _id: string; type: string; description: string; image: string };
+  vehicle_type: {
+    _id: string;
+    category: string;
+    type: string;
+    image: string;
+  };
   weight_or_volume: string;
   date_time_transport: string;
   loading_time: string;
   notes: string;
-  status: string;
+  type: string;
+  status: OrderStatus;
   createdAt: string;
   updatedAt: string;
+  __v: number;
 }
+
+
+export interface CreateOrderInput {
+  from_location: string;
+  to_location: string;
+  vehicle_type: string;
+  weight_or_volume: string;
+  date_time_transport: string;
+  loading_time: string;
+  notes: string;
+}
+
+
+export interface CreateOrderResponse {
+  message: string;
+  order: Order;
+}
+
+
+export interface OrdersResponse {
+  orders: Order[];
+  totalPages: number;
+  currentPage: number;
+  total: number;
+}
+
+
+export interface OrdersState {
+  orders: Order[];
+  totalPages: number;
+  currentPage: number;
+  total: number;
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+}
+
+
+
+
+export type OfferStatus = "Pending" | "Accepted" | "Rejected";
+
 
 export interface Driver {
   _id: string;
@@ -82,37 +167,68 @@ export interface Driver {
   phoneNumber: string;
   photo: string;
   vehicleNumber: string;
-  vehicleType: string;
+  vehicleType: {
+    _id: string;
+    category: string;
+    type: string;
+    image: string;
+    imagePublicId: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  };
 }
+
 
 export interface Offer {
   _id: string;
-  order_id: string | Order;
+  order_id: Order | string;
   driver_id: Driver;
   price: number;
   notes: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface User {
-  _id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
+  status: OfferStatus;
   createdAt: string;
   updatedAt: string;
   __v: number;
 }
 
-export interface UserUpdate {
-  fullName?: string;
-  email?: string;
-  phoneNumber?: string;
+
+export interface CreateOfferInput {
+  order_id: string;
+  price: number;
+  notes: string;
 }
 
-export interface ChangePasswordData {
-  currentPassword: string;
-  newPassword: string;
+
+export interface OfferResponse {
+  message: string;
+  offer: Offer;
+  order?: Order;
+}
+
+
+export interface OffersState {
+  offers: Offer[];
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+}
+
+
+export interface VehicleType {
+  _id: string;
+  category: string;
+  type: string;
+  image: string;
+  imagePublicId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
+}
+
+
+export interface VehicleTypesState {
+  vehicleTypes: VehicleType[];
+  vehicleType: VehicleType | null;
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
 }

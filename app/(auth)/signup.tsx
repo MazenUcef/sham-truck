@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,12 +16,12 @@ import UserPersonalInfoForm from '@/components/auth/UserPersonalInfoForm';
 
 export default function Signup() {
   const { role } = useLocalSearchParams<{ role: 'driver' | 'user' }>();
-  const [activeTab, setActiveTab] = useState<'signup' | 'login'>('signup');
+  const [activeTab, setActiveTab] = useState<'signup' | 'login'>('login');
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
-  const { status, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { status, error } = useSelector((state: RootState) => state.auth);
   const loading = status === 'loading';
 
   const methods = useForm({
@@ -45,13 +45,11 @@ export default function Signup() {
 
     try {
       if (role === 'user') {
-        // user registration
         const userData: UserRegistration = {
           fullName: data.fullName,
           email: data.email,
           password: data.password,
-          phoneNumber: data.phoneNumber,
-          role: "user"
+          phoneNumber: data.phoneNumber
         };
 
         await dispatch(signupUser(userData)).unwrap();
@@ -59,20 +57,19 @@ export default function Signup() {
         router.replace('/(root)/user/home');
 
       } else if (role === 'driver') {
-        console.log("from driverData",data.vehicleTypeId);
-        
+        console.log("from driverData", data.vehicleTypeId);
+
         const driverData: DriverRegistration = {
           fullName: data.fullName,
           email: data.email,
           password: data.password,
           phoneNumber: data.phoneNumber,
           vehicleNumber: data.vehicleNumber,
-          vehicleType: data.vehicleTypeId,
+          vehicleTypeId: data.vehicleTypeId,
           photo: data.vehiclePhoto,
-          role:"driver",
         };
-        console.log("driverData",driverData);
-        
+        console.log("driverData", driverData);
+
 
         const formData = createDriverFormData(driverData);
         await dispatch(signupDriver(formData)).unwrap();
@@ -89,7 +86,7 @@ export default function Signup() {
       const credentials: LoginCredentials = {
         email: data.email,
         password: data.password,
-        role: role || 'user',
+        role: role,
       };
 
       await dispatch(signin(credentials)).unwrap();
@@ -129,7 +126,7 @@ export default function Signup() {
   };
 
   // Show error alerts when they occur
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       Alert.alert('Error', error);
     }

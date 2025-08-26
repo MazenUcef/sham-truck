@@ -19,7 +19,7 @@ import { AppDispatch, RootState } from '@/redux/store';
 import { createOrder, getUserOrders, clearError as clearOrdersError } from '@/redux/slices/OrdersSlice';
 import { fetchVehicleTypes, clearError as clearVehicleError } from '@/redux/slices/VehicleTypesSlice';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { getUser } from '@/redux/slices/UserSlice';
+import { getUserById } from '@/redux/slices/UserSlice';
 
 export default function Home() {
   const {
@@ -52,15 +52,18 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'عادية' | 'مغلقة' | 'مبردة'>('عادية');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
+  console.log("userrrrrrrrr", user);
+
+
 
   useEffect(() => {
     if (user && user.id) {
-      dispatch(getUser(user.id));
+      dispatch(getUserById({ id: user.id, role: "user" }));
     }
-  }, [dispatch, user]);
+  }, []);
 
-console.log("user",user);
-console.log("UserData",UserData);
+  console.log("user", user);
+  console.log("UserData", UserData);
 
 
   const opacity = useSharedValue(0.3);
@@ -72,6 +75,8 @@ console.log("UserData",UserData);
     dispatch(getUserOrders());
     dispatch(fetchVehicleTypes());
   }, [dispatch]);
+console.log("vehicleTypes",vehicleTypes);
+console.log("vehicleTypes.length",vehicleTypes.length);
 
   useEffect(() => {
     if (ordersError) {
@@ -134,6 +139,8 @@ console.log("UserData",UserData);
   };
 
   const onSubmit = async (data: any) => {
+    console.log("dataaaaa",data);
+    
     try {
       const orderData = {
         from_location: data.fromLocation,
@@ -143,7 +150,10 @@ console.log("UserData",UserData);
         date_time_transport: data.dateNtime.toISOString(),
         loading_time: data.loadingTime,
         notes: data.notes,
+        type: data.cargoType,
       };
+      console.log("orderData",orderData);
+      
       await dispatch(createOrder(orderData)).unwrap();
       console.log('Order created successfully');
       setSuccessModalVisible(true);
@@ -159,6 +169,41 @@ console.log("UserData",UserData);
   };
 
   const latestOrder = orders.length > 0 ? orders[0] : null;
+
+  const formatDateTime = (dateTime: string | Date | undefined): string => {
+    if (!dateTime) return "غير محدد";
+  
+    try {
+      const date = typeof dateTime === "string" ? new Date(dateTime) : dateTime;
+      if (isNaN(date.getTime())) return "غير محدد";
+  
+      // Format date and time separately for better control
+      const dateFormatter = new Intl.DateTimeFormat("ar-EG", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+  
+      const timeFormatter = new Intl.DateTimeFormat("ar-EG", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+  
+      const formattedDate = dateFormatter.format(date);
+      let formattedTime = timeFormatter.format(date);
+  
+      // Replace English AM/PM with Arabic equivalents
+      formattedTime = formattedTime
+        .replace("AM", "ص")
+        .replace("PM", "م");
+  
+      return `${formattedDate} ${formattedTime}`;
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "غير محدد";
+    }
+  };
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84, position: "relative" }}>
@@ -202,9 +247,9 @@ console.log("UserData",UserData);
                 from={latestOrder.from_location}
                 to={latestOrder.to_location}
                 weight={latestOrder.weight_or_volume}
-                dateTime={format(new Date(latestOrder.date_time_transport), 'dd/MM/yyyy - hh:mm a')}
+                dateTime={formatDateTime(latestOrder.date_time_transport)}
                 orderId={latestOrder._id}
-                status ={latestOrder.status}
+                status={latestOrder.status}
               />
             </View>
           ) : null}
@@ -506,10 +551,10 @@ console.log("UserData",UserData);
 
               <View style={[styles.vehicleTypesContainer, {}]}>
                 {vehicleStatus === "loading" ? (
-                  <Text>جاري تحميل أنواع المركبات...</Text>
+                  <Text style={{alignSelf:"flex-start"}}>جاري تحميل أنواع المركبات...</Text>
                 ) : vehicleTypes && vehicleTypes.length > 0 ? (
                   vehicleTypes
-                    .filter((vehicle) => vehicle.type === activeTab)
+                    .filter((vehicle) => vehicle.category === activeTab)
                     .map((vehicle) => (
                       <TouchableOpacity
                         key={vehicle._id}
@@ -528,7 +573,7 @@ console.log("UserData",UserData);
                         <View style={{ flex: 1, alignItems: "flex-start" }}>
                           <Text style={{ fontWeight: 800, fontSize: 14 }}>{vehicle.type}</Text>
                           <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E", marginTop: 6 }}>
-                            {vehicle.description}
+                            {vehicle.category}
                           </Text>
                         </View>
                       </TouchableOpacity>

@@ -1,59 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { apiService } from "@/config";
-
-interface Customer {
-  _id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-}
-
-interface Order {
-  _id: string;
-  customer_id: Customer;
-  from_location: string;
-  to_location: string;
-  vehicle_type: string;
-  weight_or_volume: string;
-  date_time_transport: string;
-  loading_time: string;
-  notes: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Driver {
-  _id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  photo: string;
-  vehicleNumber: string;
-  vehicleType: string;
-}
-
-interface Offer {
-  _id: string;
-  order_id: string | Order;
-  driver_id: Driver;
-  price: number;
-  notes: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface OfferResponse {
-  message: string;
-  offer: Offer;
-}
-
-interface OffersState {
-  offers: Offer[];
-  status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
-}
+import { OfferResponse, CreateOfferInput, Offer, OffersState } from "@/types";
 
 const initialState: OffersState = {
   offers: [],
@@ -63,15 +10,13 @@ const initialState: OffersState = {
 
 export const createOffer = createAsyncThunk<
   OfferResponse,
-  { order_id: string; price: number; notes: string },
+  CreateOfferInput,
   { rejectValue: string }
 >("offers/createOffer", async (offerData, { rejectWithValue }) => {
   try {
     const response = await apiService.post<OfferResponse>("/api/offers", offerData);
-    console.log("Created offer:", response);
     return response;
   } catch (error: any) {
-    console.error("Create offer error:", error);
     return rejectWithValue(
       error.response?.data?.message || error.message || "Failed to create offer"
     );
@@ -85,16 +30,13 @@ export const getOrderOffers = createAsyncThunk<
 >("offers/getOrderOffers", async (orderId, { rejectWithValue }) => {
   try {
     const response = await apiService.get<Offer[]>(`/api/offers/order/${orderId}`);
-    console.log("Fetched offers for order:", response);
     return response;
   } catch (error: any) {
-    console.error("Fetch offers error:", error);
     return rejectWithValue(
       error.response?.data?.message || error.message || "Failed to fetch offers"
     );
   }
 });
-
 
 export const acceptOffer = createAsyncThunk<
   OfferResponse,
@@ -103,10 +45,8 @@ export const acceptOffer = createAsyncThunk<
 >("offers/acceptOffer", async (offerId, { rejectWithValue }) => {
   try {
     const response = await apiService.post<OfferResponse>(`/api/offers/${offerId}/accept`, {});
-    console.log("Accepted offer:", response);
     return response;
   } catch (error: any) {
-    console.error("Accept offer error:", error);
     return rejectWithValue(
       error.response?.data?.message || error.message || "Failed to accept offer"
     );
@@ -120,11 +60,8 @@ export const getDriverOffers = createAsyncThunk<
 >("offers/getDriverOffers", async (_, { rejectWithValue }) => {
   try {
     const response = await apiService.get<Offer[]>("/api/offers/driver");
-    console.log("Fetched driver offers:", response);
-    
     return response;
   } catch (error: any) {
-    console.error("Fetch driver offers error:", error);
     return rejectWithValue(
       error.response?.data?.message || error.message || "Failed to fetch driver offers"
     );
@@ -145,38 +82,18 @@ const offersSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
       .addCase(createOffer.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
       .addCase(createOffer.fulfilled, (state, action: PayloadAction<OfferResponse>) => {
         state.status = "succeeded";
-        if (!Array.isArray(state.offers)) {
-          console.warn("state.offers was undefined or not an array, reinitializing to []");
-          state.offers = [];
-        }
-        console.log("Current state.offers before push:", state.offers);
-        state.offers.push({
-          ...action.payload.offer,
-          driver_id: {
-            ...action.payload.offer.driver_id,
-            phoneNumber: action.payload.offer.driver_id.phoneNumber.trim(),
-            vehicleNumber: action.payload.offer.driver_id.vehicleNumber.trim(),
-            vehicleType: action.payload.offer.driver_id.vehicleType.trim(),
-          },
-          order_id: typeof action.payload.offer.order_id === "string"
-            ? action.payload.offer.order_id
-            : {
-              ...action.payload.offer.order_id,
-              vehicle_type: action.payload.offer.order_id.vehicle_type.trim(),
-            },
-        });
-        console.log("Current state.offers after push:", state.offers);
+        state.offers.push(action.payload.offer);
       })
       .addCase(createOffer.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to create offer";
-        console.error("createOffer rejected:", state.error);
       })
 
       .addCase(getOrderOffers.pending, (state) => {
@@ -185,30 +102,11 @@ const offersSlice = createSlice({
       })
       .addCase(getOrderOffers.fulfilled, (state, action: PayloadAction<Offer[]>) => {
         state.status = "succeeded";
-        // Ensure action.payload is an array
-        const offers = Array.isArray(action.payload) ? action.payload : [];
-        console.log("getOrderOffers payload:", offers);
-        state.offers = offers.map((offer) => ({
-          ...offer,
-          driver_id: {
-            ...offer.driver_id,
-            phoneNumber: offer.driver_id.phoneNumber.trim(),
-            vehicleNumber: offer.driver_id.vehicleNumber.trim(),
-            vehicleType: offer.driver_id.vehicleType.trim(),
-          },
-          order_id: typeof offer.order_id === "string"
-            ? offer.order_id
-            : {
-              ...offer.order_id,
-              vehicle_type: offer.order_id.vehicle_type.trim(),
-            },
-        }));
-        console.log("Current state.offers after getOrderOffers:", state.offers);
+        state.offers = action.payload;
       })
       .addCase(getOrderOffers.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to fetch offers";
-        console.error("getOrderOffers rejected:", state.error);
       })
 
       .addCase(getDriverOffers.pending, (state) => {
@@ -217,29 +115,11 @@ const offersSlice = createSlice({
       })
       .addCase(getDriverOffers.fulfilled, (state, action: PayloadAction<Offer[]>) => {
         state.status = "succeeded";
-        const offers = Array.isArray(action.payload) ? action.payload : [];
-        console.log("getDriverOffers payload:", offers);
-        state.offers = offers.map((offer) => ({
-          ...offer,
-          driver_id: {
-            ...offer.driver_id,
-            phoneNumber: offer.driver_id.phoneNumber?.trim() || '',
-            vehicleNumber: offer.driver_id.vehicleNumber?.trim() || '',
-            vehicleType: offer.driver_id.vehicleType?.trim() || '',
-          },
-          order_id: typeof offer.order_id === "string"
-            ? offer.order_id
-            : {
-              ...offer.order_id,
-              vehicle_type: offer.order_id.vehicle_type?.trim() || '',
-            },
-        }));
-        console.log("Current state.offers after getDriverOffers:", state.offers);
+        state.offers = action.payload;
       })
       .addCase(getDriverOffers.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to fetch driver offers";
-        console.error("getDriverOffers rejected:", state.error);
       })
 
       .addCase(acceptOffer.pending, (state) => {
@@ -248,31 +128,17 @@ const offersSlice = createSlice({
       })
       .addCase(acceptOffer.fulfilled, (state, action: PayloadAction<OfferResponse>) => {
         state.status = "succeeded";
-        const updatedOffer = {
-          ...action.payload.offer,
-          driver_id: {
-            ...action.payload.offer.driver_id,
-            phoneNumber: action.payload.offer.driver_id.phoneNumber.trim(),
-            vehicleNumber: action.payload.offer.driver_id.vehicleNumber.trim(),
-            vehicleType: action.payload.offer.driver_id.vehicleType.trim(),
-          },
-          order_id: typeof action.payload.offer.order_id === "string"
-            ? action.payload.offer.order_id
-            : {
-              ...action.payload.offer.order_id,
-              vehicle_type: action.payload.offer.order_id.vehicle_type.trim(),
-            },
-        };
-
-        state.offers = state.offers.map((offer) =>
-          offer._id === updatedOffer._id ? updatedOffer : offer
-        );
-        console.log("Updated state.offers after acceptOffer:", state.offers);
+        const updatedOffer = action.payload.offer;
+        const existingIndex = state.offers.findIndex((o) => o._id === updatedOffer._id);
+        if (existingIndex >= 0) {
+          state.offers[existingIndex] = updatedOffer;
+        } else {
+          state.offers.push(updatedOffer);
+        }
       })
       .addCase(acceptOffer.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to accept offer";
-        console.error("acceptOffer rejected:", state.error);
       });
   },
 });

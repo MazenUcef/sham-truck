@@ -55,12 +55,13 @@ export default function ForgetPassword() {
         const passwordData: ChangePasswordData = {
             currentPassword: data.currentPassword,
             newPassword: data.newPassword,
+            role:"router"
         };
 
         try {
             await dispatch(changePassword({ id: user.id, passwordData })).unwrap();
             alert("تم حفظ التغييرات بنجاح ✅");
-            router.back(); // Optionally navigate back after success
+            router.back();
         } catch (error: any) {
             console.error("Password change failed:", error);
             alert("فشل في تغيير كلمة المرور: " + (error || "خطأ غير معروف"));

@@ -22,7 +22,7 @@ import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { logout } from "@/redux/slices/AuthSlice";
-import { getUser } from "@/redux/slices/UserSlice";
+import { getUserById } from "@/redux/slices/UserSlice";
 
 
 
@@ -33,7 +33,7 @@ export default function Profile() {
   const dispatch = useDispatch<AppDispatch>()
   useEffect(() => {
     if (user && user.id ) {
-      dispatch(getUser(user.id));
+      dispatch(getUserById({ id: user.id, role: "user" }));
     }
   }, [dispatch, user]);
 

@@ -38,7 +38,7 @@ export default function VehicleInfo() {
         }
 
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [4, 3],
             quality: 0.8,
@@ -210,10 +210,10 @@ export default function VehicleInfo() {
 
                         <View style={[styles.vehicleTypesContainer, {}]}>
                             {status === "loading" ? (
-                                <Text>جاري تحميل أنواع المركبات...</Text>
+                                <Text style={{alignSelf:"flex-start"}}>جاري تحميل أنواع المركبات...</Text>
                             ) : vehicleTypes && vehicleTypes.length > 0 ? (
                                 vehicleTypes
-                                    .filter((vehicle) => vehicle.type === activeTab)
+                                    .filter((vehicle) => vehicle.category === activeTab)
                                     .map((vehicle) => (
                                         <TouchableOpacity
                                             key={vehicle._id}
@@ -234,7 +234,7 @@ export default function VehicleInfo() {
                                             <View style={{ flex: 1, alignItems: "flex-start" }}>
                                                 <Text style={{ fontWeight: 800, fontSize: 14 }}>{vehicle.type}</Text>
                                                 <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E", marginTop: 6 }}>
-                                                    {vehicle.description}
+                                                    {vehicle.category}
                                                 </Text>
                                             </View>
                                         </TouchableOpacity>

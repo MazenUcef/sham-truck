@@ -1,30 +1,86 @@
-import React, { useState } from 'react';
-import { Controller, FieldError, useForm } from 'react-hook-form';
-import { Text, TextInput, TouchableOpacity, View, Modal, StyleSheet, Image, Alert } from 'react-native';
-import LockIcon from '@/assets/icons/Auth/LockIcon';
-import * as ImagePicker from 'expo-image-picker';
-import { vehicleMockData } from '@/constants';
-import IdentityCardIcon from '@/assets/icons/Auth/IdentityCard';
-import SteeringIcon from '@/assets/icons/Auth/SteeringIcon';
-import PhoneIcon from '@/assets/icons/Auth/PhoneIcon';
-import ArrowToLeftIcon from '@/assets/icons/Auth/ArrowToLeftIcon';
-import RightIcon from '@/assets/icons/Driver/RightIcon';
-import ToRightIcon from '@/assets/icons/Driver/ToRightIcon';
-import { router } from 'expo-router';
+import React, { useEffect, useState } from "react";
+import { Controller, FieldError, useForm } from "react-hook-form";
+import {
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    Modal,
+    StyleSheet,
+    Image,
+    Alert,
+    ActivityIndicator,
+} from "react-native";
+import LockIcon from "@/assets/icons/Auth/LockIcon";
+import * as ImagePicker from "expo-image-picker";
+import IdentityCardIcon from "@/assets/icons/Auth/IdentityCard";
+import SteeringIcon from "@/assets/icons/Auth/SteeringIcon";
+import PhoneIcon from "@/assets/icons/Auth/PhoneIcon";
+import ArrowToLeftIcon from "@/assets/icons/Auth/ArrowToLeftIcon";
+import RightIcon from "@/assets/icons/Driver/RightIcon";
+import { router } from "expo-router";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { fetchVehicleTypes, getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
+import { getUserById, updateUser, UserUpdate } from "@/redux/slices/UserSlice";
+import { AuthUser, Driver } from "@/types";
 
 export default function VehicleInfo() {
+    const dispatch = useDispatch<AppDispatch>();
+    const { user } = useSelector((state: RootState) => state.user);
+    const { vehicleType, status: vehicleStatus } = useSelector(
+        (state: RootState) => state.vehicleTypes
+    );
+    const { status: userStatus } = useSelector((state: RootState) => state.user);
+
     const { control, formState: { errors }, setValue, handleSubmit } = useForm({
         defaultValues: {
-            phone: '',
-            vehicleType: '',
-            vehicleNumber: '',
-            vehiclePhoto: '',
-            vehicleTypeId: ''
-        }
+            phone: "",
+            vehicleType: "",
+            vehicleNumber: "",
+            vehiclePhoto: "",
+            vehicleTypeId: "",
+        },
     });
+
     const [modalVisible, setModalVisible] = useState(false);
-    const [activeTab, setActiveTab] = useState<'عادية' | 'مغلقة' | 'مبردة'>('عادية');
+    const [activeTab, setActiveTab] = useState<"عادية" | "مغلقة" | "مبردة">("عادية");
     const [vehicleImage, setVehicleImage] = useState<string | null>(null);
+    const { vehicleTypes, status, error } = useSelector((state: RootState) => state.vehicleTypes);
+
+    useEffect(() => {
+        dispatch(fetchVehicleTypes());
+    }, []);
+
+    // Type guard to check if user is a Driver
+    const isDriver = (user: AuthUser | null): user is Driver => {
+        return (user as Driver)?.role === "driver";
+    };
+
+    console.log("user", user);
+
+    // Initialize form with user data
+    useEffect(() => {
+        if (user && isDriver(user)) {
+            setValue("phone", user.phoneNumber || "");
+            setValue("vehicleNumber", user.vehicleNumber || "");
+            setValue("vehicleTypeId", user.vehicleType?._id || "");
+            setValue("vehicleType", user.vehicleType?.type || "");
+            setValue("vehiclePhoto", user.photo || "");
+            setVehicleImage(user.photo || null);
+            if (user.vehicleType) {
+                dispatch(getVehicleTypeById(user.vehicleType));
+            }
+        }
+    }, [user, dispatch, setValue]);
+
+    // Update form with vehicle type data
+    useEffect(() => {
+        if (vehicleType) {
+            setValue("vehicleTypeId", vehicleType._id);
+            setValue("vehicleType", vehicleType.type);
+        }
+    }, [vehicleType, setValue]);
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -36,23 +92,63 @@ export default function VehicleInfo() {
 
         if (!result.canceled) {
             setVehicleImage(result.assets[0].uri);
-            setValue('vehiclePhoto', result.assets[0].uri);
+            setValue("vehiclePhoto", result.assets[0].uri);
         }
     };
 
     const getErrorMessage = (error: FieldError | undefined): string | null => {
-        return error ? error.message || 'هذا الحقل مطلوب' : null;
+        return error ? error.message || "هذا الحقل مطلوب" : null;
     };
 
-    const onSubmit = (data: any) => {
-        console.log('Form data:', data);
-        Alert.alert('تم الحفظ', 'تم حفظ البيانات بنجاح');
-        // Here you would typically send the data to your API
+    const onSubmit = async (data: any) => {
+        if (!user || !user.id) {
+            Alert.alert("خطأ", "لا يوجد مستخدم مسجل الدخول");
+            return;
+        }
+
+        // Construct userData object for the thunk
+        const userData: UserUpdate = {
+            phoneNumber: data.phone,
+            vehicleNumber: data.vehicleNumber,
+            vehicleType: data.vehicleTypeId,
+            role: "driver",
+        };
+
+        try {
+            const updateResult = await dispatch(
+                updateUser({ id: user.id, userData })
+            ).unwrap();
+            console.log("Update result:", updateResult);
+            await dispatch(getUserById({ id: user.id, role: "driver" })).unwrap();
+            Alert.alert("تم الحفظ", "تم حفظ بيانات الشاحنة بنجاح");
+            router.back();
+        } catch (error: any) {
+            console.error("Update failed:", error);
+            const errorMessage =
+                error === "Phone number is already in use"
+                    ? "رقم الهاتف مستخدم بالفعل"
+                    : error === "Driver not found"
+                        ? "المستخدم غير موجود"
+                        : error === "Invalid vehicle type"
+                            ? "نوع المركبة غير صالح"
+                            : error === "Failed to upload photo"
+                                ? "فشل رفع الصورة"
+                                : error || "خطأ غير معروف";
+            Alert.alert("خطأ في الحفظ", errorMessage);
+        }
     };
 
     return (
         <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
-            <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "flex-end", gap: 85, marginRight: 29 }}>
+            <View
+                style={{
+                    marginBottom: 40,
+                    flexDirection: "row",
+                    alignSelf: "flex-end",
+                    gap: 85,
+                    marginRight: 29,
+                }}
+            >
                 <Text style={{ fontWeight: "700", fontSize: 18, lineHeight: 24, color: "white" }}>
                     معلومات الشاحنة
                 </Text>
@@ -71,204 +167,231 @@ export default function VehicleInfo() {
                 }}
             >
                 <View style={{ width: "100%" }}>
-                    <View >
-
-                        <View style={{ width: "100%" }}>
-                            <View >
-                                {/* Phone Number Field */}
-                                <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
-                                    <Controller
-                                        control={control}
-                                        rules={{ required: 'رقم الهاتف مطلوب' }}
-                                        render={({ field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                style={{ flex: 1, textAlign: 'right' }}
-                                                placeholderTextColor={"#878A8E"}
-                                                placeholder='رقم الهاتف'
-                                                keyboardType="phone-pad"
-                                                onBlur={onBlur}
-                                                onChangeText={onChange}
-                                                value={value}
-                                            />
-                                        )}
-                                        name="phone"
-                                    />
-                                    <PhoneIcon />
-                                </View>
-                                {errors.phone && (
-                                    <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                                        {getErrorMessage(errors.phone as FieldError)}
-                                    </Text>
-                                )}
-
-                                {/* Vehicle Type Field */}
-                                <TouchableOpacity
-                                    style={{ marginTop: 16, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}
-                                    onPress={() => setModalVisible(true)}
-                                >
-                                    <Controller
-                                        control={control}
-                                        rules={{ required: 'نوع المركبة مطلوب' }}
-                                        render={({ field: { value } }) => (
-                                            <>
-                                                <ArrowToLeftIcon />
-                                                <Text style={{ flex: 1, textAlign: 'right', color: value ? '#000' : '#878A8E' }}>
-                                                    {value || 'اختر نوع المركبة'}
-                                                </Text>
-                                                <SteeringIcon />
-                                            </>
-                                        )}
-                                        name="vehicleType"
-                                    />
-                                </TouchableOpacity>
-                                {errors.vehicleType && (
-                                    <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                                        {getErrorMessage(errors.vehicleType as FieldError)}
-                                    </Text>
-                                )}
-
-                                {/* Vehicle Number Field */}
-                                <View style={{ marginTop: 16, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
-                                    <Controller
-                                        control={control}
-                                        rules={{ required: 'رقم المركبة مطلوب' }}
-                                        render={({ field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                style={{ flex: 1, textAlign: 'right' }}
-                                                placeholderTextColor={"#878A8E"}
-                                                placeholder='رقم المركبة'
-                                                keyboardType="number-pad"
-                                                onBlur={onBlur}
-                                                onChangeText={onChange}
-                                                value={value}
-                                            />
-                                        )}
-                                        name="vehicleNumber"
-                                    />
-                                    <IdentityCardIcon />
-                                </View>
-                                {errors.vehicleNumber && (
-                                    <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                                        {getErrorMessage(errors.vehicleNumber as FieldError)}
-                                    </Text>
-                                )}
-
-                                {/* Vehicle Photo Field */}
-                                <TouchableOpacity
-                                    style={{ marginTop: 16, height: 120, justifyContent: "center", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", alignItems: "center" }}
-                                    onPress={pickImage}
-                                >
-                                    <Controller
-                                        control={control}
-                                        render={({ field: { value } }) => (
-                                            <>
-                                                {value ? (
-                                                    <Image source={{ uri: value }} style={{ width: '100%', height: '100%', borderRadius: 8 }} />
-                                                ) : (
-                                                    <>
-                                                        <Text style={{ fontWeight: "600", fontSize: 12, color: "#878A8E", marginBottom: 8 }}>صورة الشاحنة</Text>
-                                                        <LockIcon />
-                                                        <Text style={{ color: '#AEB9C4', marginTop: 5, fontWeight: "500", fontSize: 10 }}>يمكنك رفع  صورة حتى حجم 8 ميغا بايت</Text>
-                                                    </>
-                                                )}
-                                            </>
-                                        )}
-                                        name="vehiclePhoto"
-                                    />
-                                </TouchableOpacity>
-                                {errors.vehiclePhoto && (
-                                    <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                                        {getErrorMessage(errors.vehiclePhoto as FieldError)}
-                                    </Text>
-                                )}
-                                <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                    <Text style={{ fontWeight: "500", fontSize: 10, color: "#878A8E" }}>* صورة المركبة اختيارية, يمكنك تجاوز هذا الحقل</Text>
-                                </View>
-                            </View>
-                        </View>
-                        <Modal
-                            animationType="slide"
-                            transparent={true}
-                            visible={modalVisible}
-                            onRequestClose={() => setModalVisible(false)}
+                    <View>
+                        {/* Phone Number Field */}
+                        <View
+                            style={{
+                                height: 46,
+                                justifyContent: "flex-end",
+                                borderRadius: 8,
+                                backgroundColor: "#F4F4F4CC",
+                                width: "100%",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                paddingHorizontal: 10,
+                                gap: 7,
+                            }}
                         >
-                            <View style={[styles.modalContainer, { direction: 'rtl' }]}>
-                                <View style={[styles.modalContent, { alignItems: 'flex-start' }]}>
-                                    {/* Tabs Container */}
-                                    <View style={[styles.tabContainer, {
-                                        padding: 4,
-                                        height: 52,
-                                        borderRadius: 8,
-                                        backgroundColor: "#F6F6F6",
-                                        flexDirection: "row-reverse",
-                                        gap: 10
-                                    }]}>
-                                        {(['مبردة', 'مغلقة', 'عادية'] as const).map((tab) => (
-                                            <TouchableOpacity
-                                                key={tab}
-                                                style={[
-                                                    styles.tab,
-                                                    activeTab === tab && styles.activeTab
-                                                ]}
-                                                onPress={() => setActiveTab(tab)}
-                                            >
-                                                <Text style={[
-                                                    styles.tabText,
-                                                    activeTab === tab && styles.activeTabText
-                                                ]}>
-                                                    {tab}
-                                                </Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </View>
+                            <Controller
+                                control={control}
+                                rules={{ required: "رقم الهاتف مطلوب" }}
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={{ flex: 1, textAlign: "right" }}
+                                        placeholderTextColor={"#878A8E"}
+                                        placeholder="رقم الهاتف"
+                                        keyboardType="phone-pad"
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                    />
+                                )}
+                                name="phone"
+                            />
+                            <PhoneIcon />
+                        </View>
+                        {errors.phone && (
+                            <Text style={{ color: "red", textAlign: "right", fontSize: 10, marginTop: 2 }}>
+                                {getErrorMessage(errors.phone)}
+                            </Text>
+                        )}
 
-                                    <View style={{ marginTop: 24 }}>
-                                        <Text style={{ fontWeight: "500", fontSize: 16, textAlign: 'right' }}>الخيارات</Text>
-                                    </View>
+                        {/* Vehicle Type Field */}
+                        <TouchableOpacity
+                            style={{
+                                marginTop: 16,
+                                height: 46,
+                                justifyContent: "flex-end",
+                                borderRadius: 8,
+                                backgroundColor: "#F4F4F4CC",
+                                width: "100%",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                paddingHorizontal: 10,
+                                gap: 7,
+                            }}
+                            onPress={() => setModalVisible(true)}
+                        >
+                            <Controller
+                                control={control}
+                                rules={{ required: "نوع المركبة مطلوب" }}
+                                render={({ field: { value } }) => (
+                                    <>
+                                        <ArrowToLeftIcon />
+                                        <Text style={{ flex: 1, textAlign: "right", color: value ? "#000" : "#878A8E" }}>
+                                            {value || "اختر نوع المركبة"}
+                                        </Text>
+                                        <SteeringIcon />
+                                    </>
+                                )}
+                                name="vehicleType"
+                            />
+                        </TouchableOpacity>
+                        {errors.vehicleType && (
+                            <Text style={{ color: "red", textAlign: "right", fontSize: 10, marginTop: 2 }}>
+                                {getErrorMessage(errors.vehicleType)}
+                            </Text>
+                        )}
 
-                                    <View style={[styles.vehicleTypesContainer, {}]}>
-                                        {vehicleMockData
-                                            .filter(vehicle => vehicle.category === activeTab)
-                                            .map((vehicle) => (
-                                                <TouchableOpacity
-                                                    key={vehicle.id}
-                                                    style={[styles.vehicleTypeItem]}
-                                                    onPress={() => {
-                                                        setValue('vehicleType', vehicle.type);
-                                                        setValue('vehicleTypeId', String(vehicle.id));
-                                                        setModalVisible(false);
-                                                    }}
-                                                >
-                                                    <Image
-                                                        source={vehicle.image}
-                                                        style={{ width: 60, height: 60 }}
-                                                    />
-                                                    <View style={{ flex: 1, alignItems: 'flex-start' }}>
-                                                        <Text style={{ fontWeight: "800", fontSize: 14 }}>{vehicle.type}</Text>
-                                                        <Text style={{ fontWeight: "600", fontSize: 12, color: "#878A8E", marginTop: 6 }}>{vehicle.category}</Text>
-                                                    </View>
-                                                </TouchableOpacity>
-                                            ))}
-                                    </View>
-
-                                    <TouchableOpacity
-                                        onPress={() => setModalVisible(false)}
-                                        style={styles.closeButton}
-                                    >
-                                        <Text style={styles.closeButtonText}>إغلاق</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </Modal>
+                        {/* Vehicle Number Field */}
+                        <View
+                            style={{
+                                marginTop: 16,
+                                height: 46,
+                                justifyContent: "flex-end",
+                                borderRadius: 8,
+                                backgroundColor: "#F4F4F4CC",
+                                width: "100%",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                paddingHorizontal: 10,
+                                gap: 7,
+                            }}
+                        >
+                            <Controller
+                                control={control}
+                                rules={{ required: "رقم المركبة مطلوب" }}
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={{ flex: 1, textAlign: "right" }}
+                                        placeholderTextColor={"#878A8E"}
+                                        placeholder="رقم المركبة"
+                                        keyboardType="number-pad"
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                    />
+                                )}
+                                name="vehicleNumber"
+                            />
+                            <IdentityCardIcon />
+                        </View>
+                        {errors.vehicleNumber && (
+                            <Text style={{ color: "red", textAlign: "right", fontSize: 10, marginTop: 2 }}>
+                                {getErrorMessage(errors.vehicleNumber)}
+                            </Text>
+                        )}
                     </View>
                 </View>
+
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={[styles.modalContainer, { direction: "rtl" }]}>
+                        <View style={[styles.modalContent, { alignItems: "flex-start" }]}>
+                            {/* Tabs Container */}
+                            <View
+                                style={{
+                                    padding: 4,
+                                    height: 52,
+                                    borderRadius: 8,
+                                    backgroundColor: "#F6F6F6",
+                                    flexDirection: "row-reverse",
+                                    gap: 10,
+                                }}
+                            >
+                                {(["مبردة", "مغلقة", "عادية"] as const).map((tab) => (
+                                    <TouchableOpacity
+                                        key={tab}
+                                        style={[styles.tab, activeTab === tab && styles.activeTab]}
+                                        onPress={() => setActiveTab(tab)}
+                                    >
+                                        <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                                            {tab}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            <View style={{ marginTop: 24 }}>
+                                <Text style={{ fontWeight: "500", fontSize: 16, textAlign: "right" }}>
+                                    الخيارات
+                                </Text>
+                            </View>
+
+                            <View style={[styles.vehicleTypesContainer, {}]}>
+                                {status === "loading" ? (
+                                    <Text style={{ alignSelf: "flex-start" }}>جاري تحميل أنواع المركبات...</Text>
+                                ) : vehicleTypes && vehicleTypes.length > 0 ? (
+                                    vehicleTypes
+                                        .filter((vehicle) => vehicle.category === activeTab)
+                                        .map((vehicle) => (
+                                            <TouchableOpacity
+                                                key={vehicle._id}
+                                                style={[styles.vehicleTypeItem]}
+                                                onPress={() => {
+                                                    console.log(vehicle._id);
+
+                                                    setValue("vehicleType", vehicle.type);
+                                                    setValue("vehicleTypeId", vehicle._id);
+                                                    setModalVisible(false);
+                                                }}
+                                            >
+                                                <Image
+                                                    source={{ uri: vehicle.image }}
+                                                    resizeMode='contain'
+                                                    style={{ width: 80, height: 60, borderRadius: 8 }}
+                                                />
+                                                <View style={{ flex: 1, alignItems: "flex-start" }}>
+                                                    <Text style={{ fontWeight: 800, fontSize: 14 }}>{vehicle.type}</Text>
+                                                    <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E", marginTop: 6 }}>
+                                                        {vehicle.category}
+                                                    </Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))
+                                ) : (
+                                    <Text>لا توجد أنواع مركبات متاحة</Text>
+                                )}
+                            </View>
+
+                            <TouchableOpacity
+                                onPress={() => setModalVisible(false)}
+                                style={styles.closeButton}
+                            >
+                                <Text style={styles.closeButtonText}>إغلاق</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+
                 <View style={{ marginTop: 32 }}>
                     <TouchableOpacity
                         onPress={handleSubmit(onSubmit)}
-                        style={{ height: 46, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", backgroundColor: "#F9844A" }}
+                        disabled={userStatus === "loading"}
+                        style={{
+                            height: 46,
+                            borderRadius: 8,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100%",
+                            borderWidth: 1,
+                            borderColor: "#E4E4E4",
+                            backgroundColor: "#F9844A",
+                        }}
                     >
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                            <Text style={{ fontWeight: "800", fontSize: 12, color: "white" }}>حفظ التغييرات</Text>
+                            {userStatus === "loading" ? (
+                                <ActivityIndicator size="small" color="white" />
+                            ) : (
+                                <Text style={{ fontWeight: "800", fontSize: 12, color: "white" }}>
+                                    حفظ التغييرات
+                                </Text>
+                            )}
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -276,6 +399,7 @@ export default function VehicleInfo() {
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     modalContainer: {

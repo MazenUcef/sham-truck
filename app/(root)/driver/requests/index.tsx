@@ -95,8 +95,7 @@ export default function Requests() {
                 phoneNumber={order?.customer_id?.phoneNumber || ""}
                 offerId={item._id}
                 status={item.status}
-                type={order?.vehicle_type || "غير محدد"}
-                vehicle={order?.vehicle_type || "غير محدد"}
+                type={order?.type || "غير محدد"}
                 from={order?.from_location || "غير محدد"}
                 to={order?.to_location || "غير محدد"}
                 weight={order?.weight_or_volume || "غير محدد"}
