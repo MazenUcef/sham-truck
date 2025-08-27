@@ -31,6 +31,8 @@ export const OfferUserCard = ({
   orderId: string;
   status: string;
 }) => {
+  console.log(status);
+  
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
       style={{

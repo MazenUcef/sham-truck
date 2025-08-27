@@ -6,7 +6,7 @@ import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestCo
 
 export const httpClient: AxiosInstance = axios.create({
     // baseURL: "http://192.168.1.100:5000/",
-    baseURL: "https://sham-truck-backend.onrender.com",
+    baseURL: "https://sham-truck-backend-1.onrender.com",
     headers: {
         "Content-Type": "application/json",
     },
@@ -16,6 +16,8 @@ httpClient.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
         const token = await AsyncStorage.getItem("token")
         if (token) {
+            console.log("token from ",token);
+            
             config.headers.set("Authorization", `Bearer ${token}`)
         }
         return config;

@@ -4,14 +4,14 @@ import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
 
 export default function Layout() {
-    const { role, isAuthenticated } = useSelector((state: RootState) => state.auth)
-    useEffect(() => {
-        if (isAuthenticated && role === "user") {
-            router.replace('/(root)/user/home')
-        } else if (isAuthenticated && role === "driver") {
-            router.replace('/(root)/driver/home')
-        }
-    }, [isAuthenticated, role])
+
+    // useEffect(() => {
+    //     if (isAuthenticated && role === "user") {
+    //         router.replace('/(root)/user/home')
+    //     } else if (isAuthenticated && role === "driver") {
+    //         router.replace('/(root)/driver/home')
+    //     }
+    // }, [isAuthenticated, role])
     return (
         <Stack>
             <Stack.Screen name='signup' options={{ headerShown: false }} />

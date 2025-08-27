@@ -14,7 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import LockIcon from "@/assets/icons/Auth/LockIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { changePassword, ChangePasswordData } from "@/redux/slices/UserSlice";
+import { ChangePasswordData } from "@/types";
+import { changePassword } from "@/redux/slices/AuthSlice";
 
 export default function ForgetPassword() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -22,8 +23,7 @@ export default function ForgetPassword() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const dispatch = useDispatch<AppDispatch>();
-    const { user } = useSelector((state: RootState) => state.auth);
-    const { user: userData, status } = useSelector((state: RootState) => state.user);
+    const { user, status, error } = useSelector((state: RootState) => state.auth);
 
     const methods = useForm({
         mode: "onChange",
@@ -55,11 +55,10 @@ export default function ForgetPassword() {
         const passwordData: ChangePasswordData = {
             currentPassword: data.currentPassword,
             newPassword: data.newPassword,
-            role:"router"
         };
 
         try {
-            await dispatch(changePassword({ id: user.id, passwordData })).unwrap();
+            await dispatch(changePassword(passwordData)).unwrap();
             alert("تم حفظ التغييرات بنجاح ✅");
             router.back();
         } catch (error: any) {

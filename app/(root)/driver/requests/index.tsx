@@ -11,7 +11,7 @@ import { Images, mockOffers } from "@/constants";
 import { OfferCard } from "@/components/driver/OfferCard";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getDriverOffers } from "@/redux/slices/OfferSlice";
+import { fetchDriverOffers } from "@/redux/slices/OfferSlice";
 
 
 
@@ -29,7 +29,7 @@ export default function Requests() {
   const fetchOffers = async () => {
     try {
       setIsLoading(true);
-      await dispatch(getDriverOffers()).unwrap();
+      await dispatch(fetchDriverOffers()).unwrap();
     } catch (error) {
       console.error("Failed to fetch offers:", error);
     } finally {
@@ -86,13 +86,14 @@ export default function Requests() {
         <FlatList
           style={{ marginBottom: 80 }}
           data={offers}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const order = typeof item.order_id === 'object' ? item.order_id : null;
+console.log("loggg",order);
 
             return (
               <OfferCard
-                phoneNumber={order?.customer_id?.phoneNumber || ""}
+                customerid={order?.customer_id}
                 offerId={item._id}
                 status={item.status}
                 type={order?.type || "غير محدد"}
@@ -103,6 +104,7 @@ export default function Requests() {
                 price={item.price}
                 notes={item.notes}
                 originalStatus={item.status}
+                vehicle_type={item.vehicle_type}
               />
             );
           }}

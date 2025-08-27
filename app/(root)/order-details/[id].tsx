@@ -27,14 +27,14 @@ import OffersList from "@/components/user/OffersList";
 import DeleteConfirmationModal from "@/components/user/DeleteConfirmationModal";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { Offer, Order } from "@/types";
-import { clearError as clearOrdersError, getOrderById } from "@/redux/slices/OrdersSlice";
-import { acceptOffer, clearError as clearOffersError, getOrderOffers } from "@/redux/slices/OfferSlice";
 import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
 import LeftIcon from "@/assets/icons/Auth/LeftIcon";
+import { clearError as clearOrderError, getOrderById } from "@/redux/slices/OrderSlice";
+import { acceptOffer, clearError, fetchOrderOffers } from "@/redux/slices/OfferSlice";
 
 const OrderDetails = () => {
   const { id } = useLocalSearchParams();
-  console.log("id", id);
+  console.log("idddddddddddddddddddddddddddddddd", id);
 
   const navigation = useNavigation();
   useEffect(() => {
@@ -47,11 +47,13 @@ const OrderDetails = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const { status: orderStatus, error: orderError } = useSelector((state: RootState) => state.orders);
+  const { status: orderStatus, error: orderError ,orders ,order:getByIdoRDER} = useSelector((state: RootState) => state.orders);
   const { vehicleType: tyo } = useSelector((state: RootState) => state.vehicleTypes);
   const { status: offersStatus, error: offersError, offers: fetchedOffers } = useSelector((state: RootState) => state.offers);
   console.log("fetched offers", fetchedOffers);
   console.log("tyo", tyo);
+  console.log("orderrrrrrrrr", orders);
+  console.log("getByIdoRDEREWE", getByIdoRDER?.order);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -60,7 +62,7 @@ const OrderDetails = () => {
           const action = await dispatch(getOrderById(id));
           const fetchedOrder = action.payload as Order;
           setOrder(fetchedOrder);
-          await dispatch(getOrderOffers(id));
+          await dispatch(fetchOrderOffers(id));
         } catch (err) {
           console.error("Failed to fetch order details:", err);
         }
@@ -71,16 +73,12 @@ const OrderDetails = () => {
 
 console.log("order",order);
 
-useEffect(()=>{
-  if(order){
-    dispatch(getVehicleTypeById(order.vehicle_type))
-  }
-},[order])
+
 
   const handleAcceptOffer = async (offer: Offer) => {
     if (typeof id === "string") {
       try {
-        await dispatch(acceptOffer(offer._id)).unwrap();
+        await dispatch(acceptOffer(offer.id)).unwrap();
         setSelectedOffer(offer);
         alert("تم قبول العرض بنجاح ✅");
       } catch (err: any) {
@@ -219,14 +217,14 @@ useEffect(()=>{
   if (orderStatus === "failed") {
     return Alert.alert("Error :", orderError || "حدث خطأ", [{
       text: "OK",
-      onPress: () => dispatch(clearOrdersError())
+      onPress: () => dispatch(clearOrderError())
     }]);
   }
 
   if (offersStatus === "failed") {
     return Alert.alert("Error :", offersError || "حدث خطأ  ", [{
       text: "OK",
-      onPress: () => dispatch(clearOffersError())
+      onPress: () => dispatch(clearError())
     }]);
   }
 
@@ -255,7 +253,7 @@ useEffect(()=>{
   };
 
 
-  const displayDate = formatDateTime(order?.date_time_transport || order?.createdAt);
+  const displayDate = formatDateTime(getByIdoRDER?.date_time_transport || order?.createdAt);
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -329,7 +327,7 @@ useEffect(()=>{
                 <View
                   style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
                 >
-                  <Text style={styles.text}>{order.from_location}</Text>
+                  <Text style={styles.text}>{getByIdoRDER?.from_location}</Text>
                   <CenterPointIconSmall />
                 </View>
                 <View style={{ marginRight: 7.2 }}>
@@ -338,7 +336,7 @@ useEffect(()=>{
                 <View
                   style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
                 >
-                  <Text style={styles.text}>{order.to_location}</Text>
+                  <Text style={styles.text}>{getByIdoRDER?.to_location}</Text>
                   <PositionIcon />
                 </View>
               </View>
@@ -351,7 +349,7 @@ useEffect(()=>{
             </View>
             <View style={styles.rowBetween}>
               <View style={{ flexDirection: "row", gap: 12 }}>
-                <Text style={styles.text}>{`${order.weight_or_volume} طن`}</Text>
+                <Text style={styles.text}>{`${getByIdoRDER?.weight_or_volume} طن`}</Text>
                 <WeightFurnIcon />
               </View>
               <View style={{ flexDirection: "row", gap: 12 }}>
@@ -365,14 +363,13 @@ useEffect(()=>{
             <View style={[styles.rowBetween, { marginTop: 16 }]}>
               <View style={{ flexDirection: "row", gap: 12 }}>
                 <Text style={styles.text}>
-                  {typeof order.vehicle_type === "string"
-                    ? tyo?.category
-                    : "غير محدد"}
+                  { getByIdoRDER?.vehicle_type.category
+                    || "غير محدد"}
                 </Text>
                 <TruckIconSmall width={16} height={16} color={"gray"} />
               </View>
               <View style={{ flexDirection: "row", gap: 12 }}>
-                <Text style={styles.text}>{order.notes || "غير محدد"}</Text>
+                <Text style={styles.text}>{getByIdoRDER?.type || "غير محدد"}</Text>
                 <TypeDFurnIcon />
               </View>
             </View>

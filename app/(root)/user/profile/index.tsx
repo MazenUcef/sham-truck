@@ -22,20 +22,18 @@ import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { logout } from "@/redux/slices/AuthSlice";
-import { getUserById } from "@/redux/slices/UserSlice";
 
 
 
 
 export default function Profile() {
   const { user } = useSelector((state: RootState) => state.auth)
-  const { user: UserData } = useSelector((state: RootState) => state.user)
   const dispatch = useDispatch<AppDispatch>()
-  useEffect(() => {
-    if (user && user.id ) {
-      dispatch(getUserById({ id: user.id, role: "user" }));
-    }
-  }, [dispatch, user]);
+  // useEffect(() => {
+  //   if (user && user.id ) {
+  //     dispatch(getUserById({ id: user.id, role: "user" }));
+  //   }
+  // }, [dispatch, user]);
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -58,7 +56,7 @@ export default function Profile() {
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 24, justifyContent: "flex-end", marginBottom: 24 }}>
           <View style={{ gap: 12, justifyContent: "flex-start", alignItems: "flex-end" }}>
-            <Text style={{ fontWeight: 700, fontSize: 18 }}>{UserData?.fullName || user?.fullName}</Text>
+            <Text style={{ fontWeight: 700, fontSize: 18 }}>{user?.fullName}</Text>
             <Text style={{ fontWeight: 500, fontSize: 16 }}>مستخدم</Text>
           </View>
           <View>

@@ -1,17 +1,16 @@
 import React, { useEffect } from "react";
 import {
   FlatList,
-  Image,
-  StyleSheet,
   Text,
   View,
+  Alert,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { clearError, getUserOrders } from "@/redux/slices/OrdersSlice";
 import { AppDispatch, RootState } from "@/redux/store";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { OfferUserCard } from "@/components/user/OfferUserCard";
-import { Alert } from "react-native";
+import { clearError, fetchRouterOrders } from "@/redux/slices/OrderSlice";
+import { Order } from "@/types";
 
 const SkeletonOfferUserCard = () => {
   const opacity = useSharedValue(0.3);
@@ -80,9 +79,8 @@ const SkeletonOfferUserCard = () => {
 const Requests = () => {
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
   const dispatch = useDispatch<AppDispatch>();
-  console.log("order",orders);
 
-    const formatDateTime = (dateTime: string | Date | undefined): string => {
+  const formatDateTime = (dateTime: string | Date | undefined): string => {
     if (!dateTime) return "غير محدد";
 
     try {
@@ -102,10 +100,9 @@ const Requests = () => {
       return "غير محدد";
     }
   };
-  
 
   useEffect(() => {
-    dispatch(getUserOrders());
+    dispatch(fetchRouterOrders());
   }, [dispatch]);
 
   useEffect(() => {
@@ -122,18 +119,25 @@ const Requests = () => {
       );
     }
   }, [ordersStatus, ordersError, dispatch]);
+console.log("logorders",orders);
 
-  const renderOrderItem = ({ item }: { item: any }) => (
-    <OfferUserCard
-      type={item?.vehicle_type?.type || "غير محدد"}
-      from={item?.from_location || "غير محدد"}
-      to={item?.to_location || "غير محدد"}
-      weight={item?.weight_or_volume || "0 kg"}
-      dateTime={formatDateTime(item?.date_time_transport) || item?.createdAt || "غير محدد"}
-      orderId={item?._id}
-      status={item?.status}
-    />
-  );
+  const renderOrderItem = ({ item }: { item: Order }) => {
+    if (!item) return null;
+    console.log(item);
+    
+    return (
+
+      <OfferUserCard
+        type={item.vehicle_type?.category || "غير محدد"} // Use vehicle_type.category instead of item.type
+        from={item.from_location || "غير محدد"}
+        to={item.to_location || "غير محدد"}
+        weight={item.weight_or_volume || "غير محدد"}
+        dateTime={formatDateTime(item.date_time_transport) || formatDateTime(item.createdAt) || "غير محدد"}
+        orderId={item.id}
+        status={item.status || "غير محدد"}
+      />
+    )
+  };
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -165,7 +169,7 @@ const Requests = () => {
           borderTopRightRadius: 16,
         }}
       >
-        <View style={{marginBottom:60}}>
+        <View style={{ marginBottom: 60 }}>
           {ordersStatus === "loading" ? (
             [1, 2, 3].map((skelton) => (
               <SkeletonOfferUserCard key={skelton} />
@@ -175,22 +179,18 @@ const Requests = () => {
           ) : orders && orders.length === 0 ? (
             <Text style={{ textAlign: "center", color: "#878A8E" }}>لا توجد طلبات متاحة</Text>
           ) : (
-            <View>
-              <FlatList
-                data={orders}
-                renderItem={renderOrderItem}
-                keyExtractor={(item) => item._id}
-                contentContainerStyle={{ paddingBottom: 16 }}
-                showsVerticalScrollIndicator={false}
-              />
-            </View>
+            <FlatList
+              data={orders || []}
+              renderItem={renderOrderItem}
+              keyExtractor={(item, index) => item?.id || `order-${index}`}
+              contentContainerStyle={{ paddingBottom: 16 }}
+              showsVerticalScrollIndicator={false}
+            />
           )}
         </View>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({});
 
 export default Requests;

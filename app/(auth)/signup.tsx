@@ -6,13 +6,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import LeftIcon from '@/assets/icons/Auth/LeftIcon';
 import FormStepper from '@/components/auth/FormStepper';
 import VehicleInfo from '@/components/auth/VehicleInfo';
-import SignInForm from '@/components/auth/SigninForm';
-import type { UserRegistration, DriverRegistration, LoginCredentials } from '@/types';
-import { AppDispatch, RootState } from '@/redux/store';
-import { signin, signupDriver, signupUser } from '@/redux/slices/AuthSlice';
-import { createDriverFormData } from '@/utils/CreateDriverFormData';
 import PersonalInfoForm from '@/components/auth/PersonalInfoForm';
 import UserPersonalInfoForm from '@/components/auth/UserPersonalInfoForm';
+import { AppDispatch, RootState } from '@/redux/store';
+import { createDriverFormData } from '@/utils/CreateDriverFormData';
+import { login, signupDriver, signupUser } from '@/redux/slices/AuthSlice';
+import SignInForm from '@/components/auth/SigninForm';
+import { DriverRegistration, LoginCredentials, UserRegistration } from '@/types';
 
 export default function Signup() {
   const { role } = useLocalSearchParams<{ role: 'driver' | 'user' }>();
@@ -21,8 +21,7 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
-  const { status, error } = useSelector((state: RootState) => state.auth);
-  const loading = status === 'loading';
+  const { status, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const methods = useForm({
     mode: "onChange",
@@ -32,7 +31,7 @@ export default function Signup() {
       password: "",
       confirmPassword: "",
       phoneNumber: "",
-      vehicleType: "",
+      vehicleTypeId: '',
       vehicleNumber: "",
       vehiclePhoto: null as File | null,
     },
@@ -41,24 +40,22 @@ export default function Signup() {
   const { control, handleSubmit, formState: { errors }, getValues } = methods;
 
   const onSubmit = async (data: any) => {
-    console.log(data);
-
+    console.log("data",data);
+    
     try {
       if (role === 'user') {
         const userData: UserRegistration = {
           fullName: data.fullName,
           email: data.email,
           password: data.password,
-          phoneNumber: data.phoneNumber
+          phoneNumber: data.phoneNumber,
         };
-
+        console.log("userdata",userData);
+        
         await dispatch(signupUser(userData)).unwrap();
         Alert.alert('Success', 'Account created successfully!');
         router.replace('/(root)/user/home');
-
       } else if (role === 'driver') {
-        console.log("from driverData", data.vehicleTypeId);
-
         const driverData: DriverRegistration = {
           fullName: data.fullName,
           email: data.email,
@@ -68,32 +65,33 @@ export default function Signup() {
           vehicleTypeId: data.vehicleTypeId,
           photo: data.vehiclePhoto,
         };
-        console.log("driverData", driverData);
-
-
+        console.log(driverData);
+         
         const formData = createDriverFormData(driverData);
         await dispatch(signupDriver(formData)).unwrap();
         Alert.alert('Success', 'Driver account created successfully!');
         router.replace('/(root)/driver/home');
       }
-    } catch (error: any) {
-      Alert.alert('Error', error || 'Registration failed');
+    } catch (err: any) {
+      console.log(err);
+      
     }
   };
 
-  const onSignIn = async (data: LoginCredentials) => {
+  const onSignIn = async (data: any) => {
     try {
       const credentials: LoginCredentials = {
         email: data.email,
         password: data.password,
-        role: role,
+        role: role === "user" ? "router"  : "driver",
       };
-
-      await dispatch(signin(credentials)).unwrap();
+      await dispatch(login(credentials)).unwrap();
       Alert.alert('Success', 'Logged in successfully!');
       router.replace(`/(root)/${role}/home`);
-    } catch (error: any) {
-      Alert.alert('Error', error || 'Login failed');
+    } catch (err: any) {
+      console.log(err);
+      
+      // Error is handled by useEffect
     }
   };
 
@@ -103,9 +101,8 @@ export default function Signup() {
         fullName: getValues('fullName'),
         email: getValues('email'),
         password: getValues('password'),
-        confirmPassword: getValues('confirmPassword')
+        confirmPassword: getValues('confirmPassword'),
       };
-
       const isStep1Valid = Object.values(step1Fields).every(value => value.trim() !== '');
       if (isStep1Valid) {
         setCurrentStep(currentStep + 1);
@@ -125,14 +122,14 @@ export default function Signup() {
     }
   };
 
-  // Show error alerts when they occur
   useEffect(() => {
     if (error) {
       Alert.alert('Error', error);
     }
-  }, [error]);
-
-
+    if (isAuthenticated) {
+      router.replace(`/(root)/${role}/home`);
+    }
+  }, [error, isAuthenticated, role]);
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -157,12 +154,14 @@ export default function Signup() {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'signup' && styles.activeTab]}
               onPress={() => setActiveTab('signup')}
+              disabled={status === 'loading'}
             >
               <Text style={[styles.tabText, activeTab === 'signup' && styles.activeTabText]}>انشاء حساب</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'login' && styles.activeTab]}
               onPress={() => setActiveTab('login')}
+              disabled={status === 'loading'}
             >
               <Text style={[styles.tabText, activeTab === 'login' && styles.activeTabText]}>تسجيل دخول</Text>
             </TouchableOpacity>
@@ -177,9 +176,8 @@ export default function Signup() {
                     keyboardShouldPersistTaps="handled"
                   >
                     <UserPersonalInfoForm
-                      onSubmit={handleSubmit(onSubmit)}
-                      loading={loading}
-
+                      onSubmit={onSubmit}
+                      loading={status === 'loading'}
                     />
                   </ScrollView>
                 </View>
@@ -191,7 +189,7 @@ export default function Signup() {
                   setShowPassword={setShowPassword}
                   handleSubmit={handleSubmit}
                   onSignIn={onSignIn}
-                  loading={loading}
+                  loading={status === 'loading'}
                   role={role}
                 />
               )}
@@ -206,13 +204,12 @@ export default function Signup() {
                   >
                     {currentStep === 1 && <PersonalInfoForm />}
                     {currentStep === 2 && <VehicleInfo />}
-
                     <FormStepper
                       currentStep={currentStep}
                       totalSteps={2}
                       onNext={onNext}
                       onBack={onBack}
-                      loading={loading}
+                      loading={status === 'loading'}
                     />
                   </ScrollView>
                 </View>
@@ -224,7 +221,7 @@ export default function Signup() {
                   setShowPassword={setShowPassword}
                   handleSubmit={handleSubmit}
                   onSignIn={onSignIn}
-                  loading={loading}
+                  loading={status === 'loading'}
                   role={role}
                 />
               )}
@@ -235,7 +232,6 @@ export default function Signup() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   tab: {
     flex: 1,

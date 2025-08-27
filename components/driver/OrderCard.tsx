@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
 import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
@@ -22,6 +22,7 @@ import PriceInputIcon from "@/assets/icons/Driver/PriceInputIcon";
 import ConfirmationStartIcon from "@/assets/icons/Driver/ConfrimationStarIcon";
 import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
 import { Order } from "@/types";
+import { createOffer } from "@/redux/slices/OfferSlice";
 
 export const OrderCard = ({
   from,
@@ -30,7 +31,6 @@ export const OrderCard = ({
   dateTime,
   type,
   vehicle,
-  onOfferSubmit,
   orderDetails,
 }: {
   from: string;
@@ -39,32 +39,34 @@ export const OrderCard = ({
   dateTime: string;
   type: string;
   vehicle: string;
-  onOfferSubmit: (data: { amount: number }, orderDetails: Order) => void;
-  orderDetails: any;
+  orderDetails: Order;
 }) => {
+  const dispatch = useDispatch();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [lastSubmittedOrderId, setLastSubmittedOrderId] = useState<string | null>(null);
+  
+  // Get offers state from Redux
   const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
+  
   const { control, handleSubmit, watch, reset } = useForm<{ amount: string }>({
     defaultValues: { amount: "" },
   });
 
   const amountValue = watch("amount");
-console.log("type",type);
 
   useEffect(() => {
-    console.log("Offers Status:", offersStatus, "Error:", offersError, "Order ID:", orderDetails._id);
-    if (offersStatus === "succeeded" && lastSubmittedOrderId === orderDetails._id) {
+    console.log("Offers Status:", offersStatus, "Error:", offersError, "Order ID:", orderDetails.id);
+    if (offersStatus === "succeeded" && lastSubmittedOrderId === orderDetails.id) {
       setConfirmationVisible(true);
       setModalVisible(false);
       reset({ amount: "" });
     }
-    if (offersStatus === "failed" && offersError && lastSubmittedOrderId === orderDetails._id) {
+    if (offersStatus === "failed" && offersError && lastSubmittedOrderId === orderDetails.id) {
       console.error("Offer submission error:", offersError);
       alert(`${offersError}`);
     }
-  }, [offersStatus, offersError, orderDetails._id, lastSubmittedOrderId, reset]);
+  }, [offersStatus, offersError, orderDetails.id, lastSubmittedOrderId, reset]);
 
   useEffect(() => {
     if (confirmationVisible) {
@@ -76,15 +78,24 @@ console.log("type",type);
     }
   }, [confirmationVisible]);
 
-  const onSubmit = (data: { amount: string }) => {
+  // Handle offer submission
+  const handleOfferSubmit = (data: { amount: string }) => {
     const amount = parseFloat(data.amount);
     if (isNaN(amount)) {
       alert("Please enter a valid number for the price");
       return;
     }
-    setLastSubmittedOrderId(orderDetails._id);
-    onOfferSubmit({ amount }, orderDetails);
+    
+    setLastSubmittedOrderId(orderDetails.id);
+    
+    // Dispatch the createOffer action
+    dispatch(createOffer({
+      order_id: orderDetails.id,
+      price: amount,
+      // Add notes if needed: notes: "Some notes"
+    }) as any);
   };
+
   const formatDateTime = (dateTime: string | Date | undefined): string => {
     if (!dateTime) return "غير محدد";
 
@@ -104,10 +115,9 @@ console.log("type",type);
         console.error("Date formatting error:", error);
         return "غير محدد";
     }
-};
+  };
 
-
-const displayDate = formatDateTime(dateTime);
+  const displayDate = formatDateTime(dateTime);
 
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
@@ -198,9 +208,9 @@ const displayDate = formatDateTime(dateTime);
           <TouchableOpacity
             style={[styles.buttonFilled, { opacity: amountValue ? 1 : 0.5 }]}
             disabled={!amountValue || offersStatus === "loading"}
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(handleOfferSubmit)}
           >
-            {offersStatus === "loading" && lastSubmittedOrderId === orderDetails._id ? (
+            {offersStatus === "loading" && lastSubmittedOrderId === orderDetails.id ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <>

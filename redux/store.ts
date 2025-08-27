@@ -1,11 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
-import authReducer from "./slices/AuthSlice";
-import vehicleTypesReducer from "./slices/VehicleTypesSlice";
-import ordersReducer from "./slices/OrdersSlice";
-import offersReducer from "./slices/OfferSlice";
-import userReducer from "./slices/UserSlice";
+import vehicleTypesReducer from "./slices/VehicleTypesSlice"
+import authReducer from "./slices/AuthSlice"
+import ordersReducer from "./slices/OrderSlice"
+import offersReducer from "./slices/OfferSlice"
+import generalUserReducer from "./slices/GeneralSlice"
+
 
 const persistConfig = {
   key: "root",
@@ -19,7 +20,7 @@ const rootReducer = combineReducers({
   vehicleTypes: vehicleTypesReducer,
   orders: ordersReducer,
   offers: offersReducer,
-  user: userReducer,
+  generalUser: generalUserReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

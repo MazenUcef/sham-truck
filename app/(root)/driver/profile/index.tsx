@@ -17,28 +17,17 @@ import TruckIcon from "@/assets/icons/Driver/TruckIcon";
 import PolicyIcon from "@/assets/icons/Driver/PolicyIcon";
 import HelpIcon from "@/assets/icons/Driver/HelpIcon";
 import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
-import { logout } from "@/redux/slices/AuthSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getUserById } from "@/redux/slices/UserSlice";
 import { Driver, User } from "@/types";
+import { logout } from "@/redux/slices/AuthSlice";
 
 
 
 export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
-  const { user } = useSelector((state: RootState) => state.auth);
-  const { user: userData } = useSelector((state: RootState) => state.user);
-
-  useEffect(() => {
-    if (user && user.id && user.role) {
-      dispatch(getUserById({ id: user.id, role: "driver" }));
-    }
-  }, []);
-
-  const isDriver = (user: User | Driver | null): user is Driver => {
-    return (user as Driver)?.role === "driver";
-  };
+  const { user } = useSelector((state: RootState) => state.auth)
+  console.log(user);
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -59,17 +48,17 @@ export default function Profile() {
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 24, justifyContent: "flex-end", marginBottom: 24 }}>
           <View style={{ gap: 12, justifyContent: "flex-start", alignItems: "flex-end" }}>
-            <Text style={{ fontWeight: "700", fontSize: 18 }}>{userData?.fullName || user?.fullName}</Text>
+            <Text style={{ fontWeight: "700", fontSize: 18 }}>{user?.fullName}</Text>
             <Text style={{ fontWeight: "500", fontSize: 16 }}>سائق</Text>
           </View>
           <View>
-<Image
+            <Image
               source={
-                userData && isDriver(userData) && userData.photo
-                  ? { uri: userData.photo }
+                user && user.role === "driver" && user.photo
+                  ? { uri: user.photo }
                   : Images.userImg
               }
-              style={{ width: 100, height: 100 }}
+              style={{ width: 100, height: 100, borderRadius: 999 }}
             />
           </View>
         </View>
@@ -77,7 +66,7 @@ export default function Profile() {
           <TouchableOpacity
             onPress={() => router.push({
               pathname: "/(root)/driver/profile/profile-page",
-              params: { role: user?.role || 'user' }
+              // params: { role: user?.role || 'user' }
             })}
             style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
           >

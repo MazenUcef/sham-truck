@@ -22,6 +22,8 @@ import MoneyIcon from "@/assets/icons/Driver/MoneyIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
+import { getUserById } from "@/redux/slices/AuthSlice";
+import { getGeneralUser } from "@/redux/slices/GeneralSlice";
 
 export const OfferCard = ({
     offerId,
@@ -34,7 +36,8 @@ export const OfferCard = ({
     price,
     notes,
     originalStatus,
-    phoneNumber
+    customerid,
+    vehicle,
 }: {
     offerId: string;
     from: string;
@@ -46,21 +49,30 @@ export const OfferCard = ({
     price: number;
     notes?: string;
     originalStatus: string;
-    phoneNumber:string
+    customerid: string
+    vehicle: string
 }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [confirmationVisible, setConfirmationVisible] = useState(false);
-    const { user } = useSelector((state: RootState) => state.auth)
+    const {user:orderOwner } = useSelector((state: RootState) => state.generalUser)
+    console.log("orderOwner",orderOwner?.user.phoneNumber);
+    
     const dispatch = useDispatch<AppDispatch>()
     const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes)
-    const { offers } = useSelector((state: RootState) => state.offers)
     const [loading, setLoading] = useState(false);
     console.log("status", status);
 
-// console.log("phoneNumber",phoneNumber);
+    console.log("customerid", customerid);
 
 
-
+    useEffect(() => {
+        if (customerid) {
+            dispatch(getGeneralUser({
+                id: customerid,
+                role: "router"
+            }))
+        }
+    }, [customerid])
 
     useEffect(() => {
         if (confirmationVisible) {
@@ -72,11 +84,11 @@ export const OfferCard = ({
         }
     }, [confirmationVisible]);
 
-    useEffect(() => {
-        if (type) {
-            dispatch(getVehicleTypeById(type));
-        }
-    }, [dispatch, user]);
+    // useEffect(() => {
+    //     if (type) {
+    //         dispatch(getVehicleTypeById(type));
+    //     }
+    // }, [dispatch, user]);
 
 
 
@@ -150,7 +162,7 @@ export const OfferCard = ({
             </View>
             <View style={[styles.rowBetween, { marginTop: 16 }]}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
-                    <Text style={styles.text}>{vehicleType?.type}</Text>
+                    <Text style={styles.text}>{vehicle}</Text>
                     <TruckIconSmall width={16} height={16} color={"gray"} />
                 </View>
                 <View style={{ flexDirection: "row", gap: 12 }}>
@@ -173,7 +185,7 @@ export const OfferCard = ({
                     <>
                         <TouchableOpacity
                             style={{ width: 102, height: 46, borderRadius: 8, backgroundColor: "#00CD00", gap: 8, flexDirection: "row", justifyContent: "center", alignItems: "center" }}
-                            onPress={()=>Linking.openURL(`tel:${phoneNumber}`)}
+                            onPress={() => Linking.openURL(`tel:${orderOwner?.user?.phoneNumber}`)}
                         >
                             <Text style={{ fontWeight: 800, fontSize: 14, color: "white" }}>اتصال</Text>
                             <HeadsetPhoneIcon />

@@ -16,36 +16,36 @@ import GrayUserIcon from "@/assets/icons/Auth/GrayUserIcon";
 import MessageIcon from "@/assets/icons/Auth/MessageIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getUserById, updateUser, UserUpdate } from "@/redux/slices/UserSlice";
+import { getUserById, updateUser } from "@/redux/slices/AuthSlice";
 
 export default function ProfilePage() {
     const dispatch = useDispatch<AppDispatch>();
-    const { user } = useSelector((state: RootState) => state.auth);
-    const { user: UserData, status } = useSelector((state: RootState) => state.user)
-    console.log("user data", UserData);
+    const { user, status, error } = useSelector((state: RootState) => state.auth);
 
     const methods = useForm({
         mode: 'onChange',
         defaultValues: {
             fullName: '',
             email: '',
-            phone: '',
-        }
+            phoneNumber: '',
+        },
     });
     const { control, formState: { errors }, handleSubmit, setValue } = methods;
 
     useEffect(() => {
-        if (user && user.id) {
-            dispatch(getUserById({ id: user.id, role: "router" }));
+        if (user) {
+            setValue("fullName", user?.fullName || '');
+            setValue("email", user?.email || '');
+            setValue("phoneNumber", user?.phoneNumber || '');
         }
-    }, [dispatch, user, setValue]);
+    }, [user, setValue]);
+
     useEffect(() => {
-        if (UserData) {
-            setValue("fullName", UserData?.fullName);
-            setValue("email", UserData?.email);
-            setValue("phone", UserData?.phoneNumber);
+        if (error) {
+            alert("فشل في حفظ التغييرات: " + error);
         }
-    }, [UserData])
+    }, [error]);
+
     const getErrorMessage = (error: FieldError | undefined): string | null => {
         return error ? error.message || 'هذا الحقل مطلوب' : null;
     };
@@ -57,30 +57,27 @@ export default function ProfilePage() {
             return;
         }
 
-        const userData: UserUpdate = {
+        const userData = {
             fullName: data.fullName,
             email: data.email,
-            phoneNumber: data.phone,
+            phoneNumber: data.phoneNumber,
         };
+console.log("userdata",userData);
 
         try {
-
-            const updateResult = await dispatch(updateUser({ id: user.id, userData })).unwrap();
-            console.log("Update successful:", updateResult);
-
-
-            await dispatch(getUserById({ id: user.id, role: "router" })).unwrap();
+            await dispatch(updateUser(userData)).unwrap();
+            await dispatch(getUserById()).unwrap();
             alert("تم حفظ التغييرات بنجاح ✅");
-        } catch (error: any) {
-            console.error("Update failed:", error);
-            alert("فشل في حفظ التغييرات: " + (error || "خطأ غير معروف"));
+        } catch (err: any) {
+            console.error("Update failed:", err);
+            // Error is handled by useEffect
         }
     };
 
     return (
         <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
             <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "flex-end", gap: 85, marginRight: 29 }}>
-                <Text style={{ fontWeight: 700, fontSize: 18, lineHeight: 24, color: "white" }}>
+                <Text style={{ fontWeight: "700", fontSize: 18, lineHeight: 24, color: "white" }}>
                     البيانات الشخصية
                 </Text>
                 <TouchableOpacity onPress={() => router.back()}>
@@ -112,6 +109,7 @@ export default function ProfilePage() {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
+                                        editable={status !== "loading"}
                                     />
                                 )}
                                 name="fullName"
@@ -142,6 +140,7 @@ export default function ProfilePage() {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
+                                        editable={status !== "loading"}
                                     />
                                 )}
                                 name="email"
@@ -158,27 +157,29 @@ export default function ProfilePage() {
                         <View style={{ height: 46, marginTop: 16, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
                             <Controller
                                 control={control}
-                                rules={{ required: 'رقم الهاتف مطلوب' }}
+                                rules={{
+                                    required: 'رقم الهاتف مطلوب',
+                                    pattern: { value: /^\+?[1-9]\d{1,14}$/, message: 'رقم الهاتف غير صالح' }
+                                }}
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <TextInput
                                         style={{ flex: 1, textAlign: 'right' }}
                                         placeholderTextColor={"#878A8E"}
-                                        placeholder='رقم الهاتف'
+                                        placeholder='رقم الهاتف (مثال: +201234567890)'
                                         keyboardType="phone-pad"
                                         onBlur={onBlur}
-                                        onChangeText={(text) => {
-                                            onChange(text);
-                                        }}
+                                        onChangeText={onChange}
                                         value={value}
+                                        editable={status !== "loading"}
                                     />
                                 )}
-                                name="phone"
+                                name="phoneNumber"
                             />
                             <PhoneIcon />
                         </View>
-                        {errors.phone && (
+                        {errors.phoneNumber && (
                             <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                                {getErrorMessage(errors.phone as FieldError)}
+                                {getErrorMessage(errors.phoneNumber as FieldError)}
                             </Text>
                         )}
                     </View>
@@ -193,7 +194,7 @@ export default function ProfilePage() {
                     >
                         <ToRightIcon />
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                            <Text style={{ fontWeight: 800, fontSize: 14, color: "#11171A" }}>تغيير كلمة المرور</Text>
+                            <Text style={{ fontWeight: "800", fontSize: 14, color: "#11171A" }}>تغيير كلمة المرور</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -210,7 +211,8 @@ export default function ProfilePage() {
                             width: "100%",
                             borderWidth: 1,
                             borderColor: "#E4E4E4",
-                            backgroundColor: "#F9844A",
+                            backgroundColor: status === "loading" ? "#CCCCCC" : "#F9844A",
+                            opacity: status === "loading" ? 0.7 : 1,
                         }}
                     >
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>

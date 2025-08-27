@@ -17,18 +17,18 @@ import Animated, {
 } from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getAllOrders, clearError as clearOrdersError } from "@/redux/slices/OrdersSlice";
-import { clearError, createOffer } from "@/redux/slices/OfferSlice";
+import { clearError as clearOffersError, createOffer } from "@/redux/slices/OfferSlice";
 import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import LocationPinIcon from "@/assets/icons/Driver/PositionIcon";
 import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
 import FilterIcon from "@/assets/icons/Driver/FilterIcon";
 import { Images, SYRIAN_CITIES } from "@/constants";
 import { OrderCard } from "@/components/driver/OrderCard";
-import { getUserById } from "@/redux/slices/UserSlice";
+import { fetchDriverOrders ,clearError as clearOrderError} from "@/redux/slices/OrderSlice";
+import { getDriverById } from "@/redux/slices/AuthSlice";
 
 export default function Home() {
-  const { user, role } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
   const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
   const dispatch = useDispatch<AppDispatch>();
@@ -45,14 +45,14 @@ console.log("ordersssssss",orders);
 
 
   useEffect(() => {
-    dispatch(getAllOrders());
-  }, [dispatch]);
+    dispatch(fetchDriverOrders());
+  }, []);
 
   useEffect(() => {
     if (user && user.id) {
-      dispatch(getUserById({ id: user.id, role: "driver" }));
+      dispatch(getDriverById());
     }
-  }, [dispatch, user]);
+  }, []);
 
 
   console.log("ordersssssss", orders);
@@ -61,13 +61,13 @@ console.log("ordersssssss",orders);
   useEffect(() => {
     if (ordersError) {
       console.error("Orders error:", ordersError);
-      dispatch(clearOrdersError());
+      dispatch(clearOrderError());
     }
     if (offersError) {
       console.error("Offers error:", offersError);
-      dispatch(clearError());
+      dispatch(clearOffersError());
     }
-  }, [ordersError, offersError, dispatch]);
+  }, []);
 
 
   const handleOfferSubmit = async (data: { amount: number }, orderDetails: any) => {
@@ -78,7 +78,7 @@ console.log("ordersssssss",orders);
         notes: "",
       };
       await dispatch(createOffer(offerData)).unwrap();
-      dispatch(clearError());
+      dispatch(clearOffersError());
     } catch (error) {
       console.error("Failed to submit offer:", error);
     } finally {
@@ -306,8 +306,8 @@ console.log("ordersssssss",orders);
           />
         ) : (
           <FlatList
-            data={orders.filter((item) => new Date(item.date_time_transport) > new Date())}
-            keyExtractor={(item) => item._id}
+            data={orders?.orders?.filter((item) => new Date(item.date_time_transport) > new Date())}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <OrderCard
                 type={item.type}

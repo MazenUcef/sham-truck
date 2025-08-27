@@ -15,17 +15,14 @@ import MessageIcon from "@/assets/icons/Auth/MessageIcon";
 import PhoneIcon from "@/assets/icons/Auth/PhoneIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getUserById, updateUser, UserUpdate } from "@/redux/slices/UserSlice";
 import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
+import { getDriverById, updateDriver } from "@/redux/slices/AuthSlice";
+import { Driver, UpdateDriverData } from "@/types";
+import { createDriverFormData, createUpdateDriverFormData } from "@/utils/CreateDriverFormData";
 
 export default function ProfilePage() {
     const dispatch = useDispatch<AppDispatch>();
-    const { user } = useSelector((state: RootState) => state.auth);
-    const { user: userData, status } = useSelector((state: RootState) => state.user);
-
-    console.log("user?.id", user?.id);
-    console.log("userData", userData);
-
+    const { user, status } = useSelector((state: RootState) => state.auth)
     const methods = useForm({
         mode: 'onChange',
         defaultValues: {
@@ -36,23 +33,19 @@ export default function ProfilePage() {
     });
     const { control, formState: { errors }, handleSubmit, setValue } = methods;
 
-    useEffect(() => {
-        if (user && user.id && user.role) {
-            dispatch(getUserById({ id: user.id, role: "driver" }));
-        }
-    }, []);
 
     useEffect(() => {
-        if (userData) {
-            setValue("fullName", userData.fullName);
-            setValue("email", userData.email);
-            setValue("phone", userData.phoneNumber);
+        if (user) {
+            setValue("fullName", user.fullName);
+            setValue("email", user.email);
+            setValue("phone", user.phoneNumber);
         }
-    }, [userData, setValue]);
+    }, [user, setValue]);
 
     const getErrorMessage = (error: FieldError | undefined): string | null => {
         return error ? error.message || 'هذا الحقل مطلوب' : null;
     };
+
 
     const onSubmit = async (data: any) => {
         if (!user || !user.id || !user.role) {
@@ -60,22 +53,26 @@ export default function ProfilePage() {
             return;
         }
 
-        const userData: UserUpdate = {
+        if (user.role !== "driver") {
+            alert("هذه الصفحة مخصصة للسائقين فقط");
+            return;
+        }
+
+        const userData: UpdateDriverData = {
             fullName: data.fullName,
             email: data.email,
             phoneNumber: data.phone,
-            vehicleNumber: data.vehicleNumber,
-            vehicleType: data.vehicleType,
-            role: "driver"
+            // vehicleNumber and vehicleTypeId are optional in UpdateDriverData
+            // If they are required, you need to add form fields or use existing user data
+            vehicleNumber: (user as Driver).vehicleNumber, // Use existing vehicleNumber
+            vehicleTypeId: (user as Driver).vehicleType?._id, // Use existing vehicleType._id
         };
         console.log("userrrrrrrrrrrrrrrrr", user);
 
         try {
-            const updateResult = await dispatch(
-                updateUser({ id: user.id, userData })
-            ).unwrap();
-            console.log("Update successful:", updateResult);
-            await dispatch(getUserById({ id: user.id, role: user.role })).unwrap();
+            const formData = createUpdateDriverFormData(userData);
+            await dispatch(updateDriver(formData)).unwrap();
+            await dispatch(getDriverById()).unwrap();
             alert("تم حفظ التغييرات بنجاح ✅");
         } catch (error: any) {
             console.error("Update failed:", error);

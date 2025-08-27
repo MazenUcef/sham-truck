@@ -1,75 +1,152 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiService } from "@/config";
-import {
-  AuthResponse,
-  AuthState,
-  User,
-  UserRegistration,
-  LoginCredentials
-} from "@/types";
+import { AuthState, ChangePasswordData, Driver, LoginData, SignupUserData, UpdateUserData, User } from "@/types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const initialState: AuthState = {
   user: null,
+  token: null,
   status: "idle",
   error: null,
-  isAuthenticated: false,
-  token: null,
-  role: null
+  isAuthenticated: false
 };
 
 export const signupUser = createAsyncThunk<
-  AuthResponse,
-  UserRegistration,
+  { user: User; token: string },
+  SignupUserData,
   { rejectValue: string }
->("auth/signupUser", async (userData, { rejectWithValue }) => {
-  try {
-    const response = await apiService.post<AuthResponse>("/api/auth/signup/user", userData);
-    console.log(response);
+>("auth/signupUser", async (data, { rejectWithValue }) => {
+  console.log(data);
 
+  try {
+    const response = await apiService.post<{ user: User; token: string }>("/api/auth/signup/user", data);
     return response;
   } catch (error: any) {
-    console.log(error);
-
     return rejectWithValue(
-      error.response?.data?.message || error.message || "User registration failed"
+      error.response?.data?.message || error.message || "Failed to sign up user"
     );
   }
 });
 
 export const signupDriver = createAsyncThunk<
-  AuthResponse,
+  { driver: Driver; token: string },
   FormData,
   { rejectValue: string }
 >("auth/signupDriver", async (formData, { rejectWithValue }) => {
   try {
-    console.log("formdataaaaaaaa",formData);
-    
-    const response = await apiService.post<AuthResponse>("/api/auth/signup/driver", formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await apiService.post<{ driver: Driver; token: string }>(
+      "/api/auth/signup/driver",
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
     return response;
   } catch (error: any) {
-    console.log(error)
+    console.log("error",error);
+    
     return rejectWithValue(
-      error.response?.data?.message || error.message || "Driver registration failed"
+      error.response?.data?.message || error.message || "Failed to sign up driver"
     );
   }
 });
 
-export const signin = createAsyncThunk<
-  AuthResponse,
-  LoginCredentials,
+export const login = createAsyncThunk<
+  { user: User | Driver; token: string },
+  LoginData,
   { rejectValue: string }
->("auth/signin", async (credentials, { rejectWithValue }) => {
+>("auth/login", async (data, { rejectWithValue }) => {
   try {
-    const response = await apiService.post<AuthResponse>("/api/auth/signin", credentials);
-    return response; // Directly return the response
+    const response = await apiService.post<{ user: User | Driver; token: string }>(
+      "/api/auth/login",
+      data
+    );
+    return response;
   } catch (error: any) {
     return rejectWithValue(
-      error.response?.data?.message || error.message || "Login failed"
+      error.response?.data?.message || error.message || "Failed to login"
+    );
+  }
+});
+
+export const updateUser = createAsyncThunk<
+  { user: User },
+  UpdateUserData,
+  { rejectValue: string }
+>("auth/updateUser", async (data, { rejectWithValue }) => {
+  try {
+    const response = await apiService.put<{ user: User }>("/api/auth/update/user", data);
+    return response;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.message || error.message || "Failed to update user"
+    );
+  }
+});
+
+export const updateDriver = createAsyncThunk<
+  { driver: Driver },
+  FormData,
+  { rejectValue: string }
+>("auth/updateDriver", async (formData, { rejectWithValue }) => {
+  try {
+    const response = await apiService.put<{ driver: Driver }>(
+      "/api/auth/update/driver",
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+    return response;
+  } catch (error: any) {
+    console.log("error",error);
+    
+    return rejectWithValue(
+      error.response?.data?.message || error.message || "Failed to update driver"
+    );
+  }
+});
+
+export const changePassword = createAsyncThunk<
+  void,
+  ChangePasswordData,
+  { rejectValue: string }
+>("auth/changePassword", async (data, { rejectWithValue }) => {
+  try {
+    await apiService.put("/api/auth/change-password", data);
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.message || error.message || "Failed to change password"
+    );
+  }
+});
+
+export const getUserById = createAsyncThunk<
+  { user: User },
+  void,
+  { rejectValue: string }
+>("auth/getUserById", async (_, { rejectWithValue }) => {
+  try {
+    const response = await apiService.get<{ user: User }>("/api/auth/user/me");
+    return response;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.message || error.message || "Failed to fetch user"
+    );
+  }
+});
+
+export const getDriverById = createAsyncThunk<
+  { driver: Driver },
+  void,
+  { rejectValue: string }
+>("auth/getDriverById", async (_, { rejectWithValue }) => {
+  try {
+    const response = await apiService.get<{ driver: Driver }>("/api/auth/driver/me");
+    return response;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.message || error.message || "Failed to fetch driver"
     );
   }
 });
@@ -78,105 +155,137 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-      state.token = null;
-      state.role = null;
-      state.token = null;
-      AsyncStorage.removeItem("token");
-      AsyncStorage.removeItem("user");
-    },
-    setAuthState: (state, action: PayloadAction<{ user: User | null; token: string | null }>) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.isAuthenticated = !!action.payload.user;
-    },
-    restoreAuthState: (state, action: PayloadAction<{ user: User | null; token: string | null }>) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.isAuthenticated = !!action.payload.user;
-      state.status = "idle";
-      state.error = null;
-    },
     clearError: (state) => {
       state.error = null;
+    },
+    resetStatus: (state) => {
+      state.status = "idle";
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.status = "idle";
+      state.isAuthenticated = false;
+      state.error = null;
+      AsyncStorage.removeItem('token')
     },
   },
   extraReducers: (builder) => {
     builder
-      // Sign up user
       .addCase(signupUser.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
-      .addCase(signupUser.fulfilled, (state, action) => {
+      .addCase(signupUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
         state.status = "succeeded";
-        state.user = action.payload.user || null;
+        state.user = action.payload.user;
         state.token = action.payload.token;
-        state.isAuthenticated = !!action.payload.token;
-        state.role = "user"
-
-        if (action.payload.token) {
-          AsyncStorage.setItem("token", action.payload.token);
-          AsyncStorage.setItem("user", JSON.stringify(action.payload.user));
-        }
+        AsyncStorage.setItem('token', action.payload.token)
+        state.isAuthenticated = true;
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || "User registration failed";
+        state.error = action.payload || "Failed to sign up user";
+        state.isAuthenticated = false;
       })
-
-      // Sign up driver
       .addCase(signupDriver.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
-      .addCase(signupDriver.fulfilled, (state, action) => {
+      .addCase(signupDriver.fulfilled, (state, action: PayloadAction<{ driver: Driver; token: string }>) => {
         state.status = "succeeded";
-        state.user = action.payload.driver || null;
+        state.user = action.payload.driver;
         state.token = action.payload.token;
-        state.isAuthenticated = !!action.payload.token;
-        state.role = "driver"
-
-        if (action.payload.token) {
-          AsyncStorage.setItem("token", action.payload.token);
-          AsyncStorage.setItem("user", JSON.stringify(action.payload.driver));
-        }
+        AsyncStorage.setItem('token', action.payload.token)
+        state.isAuthenticated = true;
       })
       .addCase(signupDriver.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || "Driver registration failed";
+        state.isAuthenticated = false;
+        state.error = action.payload || "Failed to sign up driver";
       })
-
-      // Sign in
-      .addCase(signin.pending, (state) => {
+      .addCase(login.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
-      .addCase(signin.fulfilled, (state, action) => {
+      .addCase(login.fulfilled, (state, action: PayloadAction<{ user: User | Driver; token: string }>) => {
         state.status = "succeeded";
-        state.user = action.payload.user || null;
+        state.user = action.payload.user;
         state.token = action.payload.token;
-        state.isAuthenticated = !!action.payload.token;
-
-        if (action.payload.token) {
-          AsyncStorage.setItem("token", action.payload.token);
-          AsyncStorage.setItem("user", JSON.stringify(action.payload.user));
-        }
+        AsyncStorage.setItem('token', action.payload.token)
+        state.isAuthenticated = true;
       })
-      .addCase(signin.rejected, (state, action) => {
+      .addCase(login.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || "Login failed";
+        state.error = action.payload || "Failed to login";
+        state.isAuthenticated = false;
+      })
+      .addCase(updateUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
+        state.status = "succeeded";
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to update user";
+      })
+      .addCase(updateDriver.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateDriver.fulfilled, (state, action: PayloadAction<{ driver: Driver }>) => {
+        state.status = "succeeded";
+        state.user = action.payload.driver;
+        state.isAuthenticated = true;
+      })
+      .addCase(updateDriver.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to update driver";
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.status = "succeeded";
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to change password";
+      })
+      .addCase(getUserById.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(getUserById.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
+        state.status = "succeeded";
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(getUserById.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to fetch user";
+      })
+      .addCase(getDriverById.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(getDriverById.fulfilled, (state, action: PayloadAction<{ driver: Driver }>) => {
+        state.status = "succeeded";
+        state.user = action.payload.driver;
+        state.isAuthenticated = true;
+      })
+      .addCase(getDriverById.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to fetch driver";
       });
   },
 });
 
-export const {
-  logout,
-  setAuthState,
-  restoreAuthState,
-  clearError,
-} = authSlice.actions;
+export const { clearError, resetStatus, logout } = authSlice.actions;
 
 export default authSlice.reducer;

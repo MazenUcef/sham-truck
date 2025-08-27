@@ -16,10 +16,10 @@ import { OrderDriverCard } from '@/components/user/OrderDriverCard';
 import { router } from 'expo-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/redux/store';
-import { createOrder, getUserOrders, clearError as clearOrdersError } from '@/redux/slices/OrdersSlice';
 import { fetchVehicleTypes, clearError as clearVehicleError } from '@/redux/slices/VehicleTypesSlice';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { getUserById } from '@/redux/slices/UserSlice';
+import { getUserById } from '@/redux/slices/AuthSlice';
+import { clearError, createOrder, fetchRouterOrders } from '@/redux/slices/OrderSlice';
 
 export default function Home() {
   const {
@@ -41,8 +41,7 @@ export default function Home() {
       notes: '',
     },
   });
-  const { token, user, role } = useSelector((state: RootState) => state.auth);
-  const { user: UserData } = useSelector((state: RootState) => state.user);
+  const { user } = useSelector((state: RootState) => state.auth);
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
   const { vehicleTypes, status: vehicleStatus, error: vehicleError } = useSelector((state: RootState) => state.vehicleTypes);
   const dispatch = useDispatch<AppDispatch>();
@@ -53,33 +52,31 @@ export default function Home() {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
 
+  console.log("ordersascsvc", orders);
 
 
 
   useEffect(() => {
-    console.log("userrrrrrrrr", user);
-    console.log("useUserDatarrrrrrrrr", UserData);
     if (user && user.id) {
-      dispatch(getUserById({ id: user.id, role: "router" }));
+      dispatch(getUserById());
     }
-  }, [dispatch, user]);
+  }, []);
 
 
   const opacity = useSharedValue(0.3);
 
   useEffect(() => {
-    dispatch(getUserOrders());
+    dispatch(fetchRouterOrders());
     dispatch(fetchVehicleTypes());
-  }, [dispatch]);
-  // console.log("vehicleTypes",vehicleTypes);
-  // console.log("vehicleTypes.length",vehicleTypes.length);
+  }, []);
+
 
   useEffect(() => {
     if (ordersError) {
       console.error("Orders error:", ordersError);
-      dispatch(clearOrdersError());
+      dispatch(clearError());
     }
-  }, [ordersError, vehicleError, dispatch]);
+  }, []);
 
   useEffect(() => {
     if (successModalVisible) {
@@ -150,7 +147,7 @@ export default function Home() {
       console.log('Order created successfully');
       setSuccessModalVisible(true);
       reset();
-      dispatch(getUserOrders());
+      dispatch(fetchRouterOrders());
     } catch (error) {
       console.error('Failed to create order:', error);
     }
@@ -160,7 +157,7 @@ export default function Home() {
     return error?.message || 'هذا الحقل مطلوب';
   };
 
-  const latestOrder = orders.length > 0 ? orders[0] : null;
+  const latestOrder = orders && orders.length > 0 ? orders[orders.length - 1] : null;
 
   const formatDateTime = (dateTime: string | Date | undefined): string => {
     if (!dateTime) return "غير محدد";
@@ -207,7 +204,7 @@ export default function Home() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 24, marginBottom: 24 }}>
             <NotificationIcon />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <Text style={{ fontWeight: '700', fontSize: 16, color: "#F6F6F6" }}>مرحبا ، {UserData?.fullName || user?.fullName}</Text>
+              <Text style={{ fontWeight: '700', fontSize: 16, color: "#F6F6F6" }}>مرحبا ، {user?.fullName}</Text>
               <View style={{ width: 48, height: 48, backgroundColor: "white", borderRadius: 8 }}>
                 <Image
                   style={{ width: 48, height: 48 }}
@@ -231,16 +228,16 @@ export default function Home() {
             }}>
               <ActivityIndicator size="large" color="#F9844A" />
             </View>
-          ) : latestOrder ? (
+          ) : latestOrder && latestOrder.id ? ( // Add check for latestOrder.id
             <View style={{ position: "absolute", zIndex: 1000, top: 70, right: 25 }}>
               <Text style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</Text>
               <OrderDriverCard
-                type={typeof latestOrder.vehicle_type === 'string' ? latestOrder.vehicle_type : latestOrder.vehicle_type.type}
+                type={typeof latestOrder.vehicle_type === 'string' ? latestOrder.vehicle_type : latestOrder.vehicle_type?.category}
                 from={latestOrder.from_location}
                 to={latestOrder.to_location}
                 weight={latestOrder.weight_or_volume}
                 dateTime={formatDateTime(latestOrder.date_time_transport)}
-                orderId={latestOrder._id}
+                orderId={latestOrder.id}
                 status={latestOrder.status}
               />
             </View>
