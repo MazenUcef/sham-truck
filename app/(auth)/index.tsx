@@ -9,10 +9,6 @@ import { RootState } from '@/redux/store'
 
 export default function Auth() {
     const { isAuthenticated, user, token } = useSelector((state: RootState) => state.auth)
-    console.log("isAuthenticated", isAuthenticated);
-    console.log("user", user);
-    console.log("role", user?.role);
-    console.log("token", token);
     useEffect(() => {
         if (isAuthenticated && user?.role) {
             if (user?.role === "router") {

@@ -12,11 +12,6 @@ import UserIcon from "@/assets/icons/Tabs/UserIcon";
 
 
 export default function Layout() {
-    const insets = useSafeAreaInsets();
-    const segments = useSegments();
-
-    console.log("Current segments:", segments);
-
     return (
         <Tabs
             screenOptions={{

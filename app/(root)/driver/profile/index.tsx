@@ -1,6 +1,4 @@
-import NotificationIcon from "@/assets/icons/user/NotificationIcon";
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import React from "react";
 import {
   Image,
   StyleSheet,
@@ -8,9 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Images, mockOffers, mockOrders, SYRIAN_CITIES } from "@/constants";
+import { Images} from "@/constants";
 import { router } from "expo-router";
-import RightIcon from "@/assets/icons/Driver/RightIcon";
 import UserIcon from "@/assets/icons/Driver/UserIcon";
 import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
 import TruckIcon from "@/assets/icons/Driver/TruckIcon";
@@ -19,7 +16,6 @@ import HelpIcon from "@/assets/icons/Driver/HelpIcon";
 import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { Driver, User } from "@/types";
 import { logout } from "@/redux/slices/AuthSlice";
 
 
@@ -27,8 +23,6 @@ import { logout } from "@/redux/slices/AuthSlice";
 export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth)
-  console.log(user);
-
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
       <View style={{ marginBottom: 40, flexDirection: "row", alignSelf: "center" }}>

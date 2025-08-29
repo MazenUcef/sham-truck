@@ -18,8 +18,6 @@ const OffersList: React.FC<OffersListProps> = ({ offers }) => {
   const { status } = useSelector((state: RootState) => state.offers);
   const [loadingOfferId, setLoadingOfferId] = useState<string | null>(null);
 
-  console.log("fetchedOffersssss", offers);
-
   const handleAcceptOffer = async (offer: any) => {
     setLoadingOfferId(offer.id);
     try {
@@ -35,8 +33,6 @@ const OffersList: React.FC<OffersListProps> = ({ offers }) => {
   };
 
   const renderItem = ({ item }: { item: any }) => {
-    console.log("itemmmmm",item?.driver_id?.phoneNumber);
-    
     return (
       <View
         style={{

@@ -219,8 +219,6 @@ export default function VehicleInfo() {
                                             key={vehicle._id}
                                             style={[styles.vehicleTypeItem]}
                                             onPress={() => {
-                                                console.log(vehicle._id);
-                                                
                                                 setValue("vehicleType", vehicle.type);
                                                 setValue("vehicleTypeId", vehicle._id);
                                                 setModalVisible(false);

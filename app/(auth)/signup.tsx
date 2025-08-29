@@ -39,9 +39,7 @@ export default function Signup() {
 
   const { control, handleSubmit, formState: { errors }, getValues } = methods;
 
-  const onSubmit = async (data: any) => {
-    console.log("data",data);
-    
+  const onSubmit = async (data: any) => {    
     try {
       if (role === 'user') {
         const userData: UserRegistration = {
@@ -49,9 +47,7 @@ export default function Signup() {
           email: data.email,
           password: data.password,
           phoneNumber: data.phoneNumber,
-        };
-        console.log("userdata",userData);
-        
+        };      
         await dispatch(signupUser(userData)).unwrap();
         Alert.alert('Success', 'Account created successfully!');
         router.replace('/(root)/user/home');
@@ -65,8 +61,6 @@ export default function Signup() {
           vehicleTypeId: data.vehicleTypeId,
           photo: data.vehiclePhoto,
         };
-        console.log(driverData);
-         
         const formData = createDriverFormData(driverData);
         await dispatch(signupDriver(formData)).unwrap();
         Alert.alert('Success', 'Driver account created successfully!');
@@ -74,7 +68,6 @@ export default function Signup() {
       }
     } catch (err: any) {
       console.log(err);
-      
     }
   };
 

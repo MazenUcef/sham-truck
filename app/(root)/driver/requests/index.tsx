@@ -11,7 +11,9 @@ import { Images, mockOffers } from "@/constants";
 import { OfferCard } from "@/components/driver/OfferCard";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { fetchDriverOffers } from "@/redux/slices/OfferSlice";
+import { clearOffers, fetchDriverOffers } from "@/redux/slices/OfferSlice";
+import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
+import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
 
 
 
@@ -19,15 +21,16 @@ export default function Requests() {
   const dispatch = useDispatch<AppDispatch>();
   const { offers, status, error } = useSelector((state: RootState) => state.offers);
   const [isLoading, setIsLoading] = useState(true);
+  const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes)
 
+  useOfferSocket();
   useEffect(() => {
     fetchOffers();
   }, []);
 
-  // console.log("offerssss",offers[0].customer_id.phoneNumber);
-
   const fetchOffers = async () => {
     try {
+      await dispatch(clearOffers())
       setIsLoading(true);
       await dispatch(fetchDriverOffers()).unwrap();
     } catch (error) {
@@ -89,12 +92,11 @@ export default function Requests() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const order = typeof item.order_id === 'object' ? item.order_id : null;
-console.log("loggg",order);
-
             return (
               <OfferCard
-                customerid={order?.customer_id}
-                offerId={item._id}
+                key={item.id}
+                customerid={order?.customer_id || ""}
+                offerId={item.id}
                 status={item.status}
                 type={order?.type || "غير محدد"}
                 from={order?.from_location || "غير محدد"}
@@ -104,7 +106,7 @@ console.log("loggg",order);
                 price={item.price}
                 notes={item.notes}
                 originalStatus={item.status}
-                vehicle_type={item.vehicle_type}
+                vehicle_type={vehicleType?.type || "غير محدد"}
               />
             );
           }}

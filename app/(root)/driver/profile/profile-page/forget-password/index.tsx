@@ -54,7 +54,6 @@ export default function ForgetPassword() {
             currentPassword: data.currentPassword,
             newPassword: data.newPassword,
         };
-        console.log("password data", passwordData);
 
         try {
             await dispatch(changePassword(passwordData)).unwrap();

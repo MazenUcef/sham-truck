@@ -6,6 +6,7 @@ import authReducer from "./slices/AuthSlice"
 import ordersReducer from "./slices/OrderSlice"
 import offersReducer from "./slices/OfferSlice"
 import generalUserReducer from "./slices/GeneralSlice"
+import notificationsReducer from "./slices/NotificationSlice"
 
 
 const persistConfig = {
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
   orders: ordersReducer,
   offers: offersReducer,
   generalUser: generalUserReducer,
+  notifications:notificationsReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

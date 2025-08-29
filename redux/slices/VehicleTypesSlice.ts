@@ -16,8 +16,7 @@ export const fetchVehicleTypes = createAsyncThunk<
 >("vehicleTypes/fetchVehicleTypes", async (_, { rejectWithValue }) => {
   try {
     const response = await apiService.get<VehicleType[]>("/api/vehicle/types");
-    console.log("typesssssss",response);
-    
+
     return response;
   } catch (error: any) {
     return rejectWithValue(

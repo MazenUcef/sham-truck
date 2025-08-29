@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import { AppDispatch, RootState } from "@/redux/store";
 import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
 import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
 import DashedDividerIcon from "@/assets/icons/Driver/DashedDivider";
@@ -23,6 +23,9 @@ import ConfirmationStartIcon from "@/assets/icons/Driver/ConfrimationStarIcon";
 import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
 import { Order } from "@/types";
 import { createOffer } from "@/redux/slices/OfferSlice";
+import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
+import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
+import { fetchDriverOrders } from "@/redux/slices/OrderSlice";
 
 export const OrderCard = ({
   from,
@@ -41,22 +44,22 @@ export const OrderCard = ({
   vehicle: string;
   orderDetails: Order;
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [lastSubmittedOrderId, setLastSubmittedOrderId] = useState<string | null>(null);
-  
+
   // Get offers state from Redux
   const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
-  
+
   const { control, handleSubmit, watch, reset } = useForm<{ amount: string }>({
     defaultValues: { amount: "" },
   });
-
+  useOfferSocket()
+  useOrderSocket()
   const amountValue = watch("amount");
 
   useEffect(() => {
-    console.log("Offers Status:", offersStatus, "Error:", offersError, "Order ID:", orderDetails.id);
     if (offersStatus === "succeeded" && lastSubmittedOrderId === orderDetails.id) {
       setConfirmationVisible(true);
       setModalVisible(false);
@@ -79,41 +82,42 @@ export const OrderCard = ({
   }, [confirmationVisible]);
 
   // Handle offer submission
-  const handleOfferSubmit = (data: { amount: string }) => {
+  const handleOfferSubmit = async (data: { amount: string }) => {
     const amount = parseFloat(data.amount);
     if (isNaN(amount)) {
       alert("Please enter a valid number for the price");
       return;
     }
-    
+
     setLastSubmittedOrderId(orderDetails.id);
-    
+
     // Dispatch the createOffer action
-    dispatch(createOffer({
+    await dispatch(createOffer({
       order_id: orderDetails.id,
       price: amount,
       // Add notes if needed: notes: "Some notes"
     }) as any);
+    await dispatch(fetchDriverOrders())
   };
 
   const formatDateTime = (dateTime: string | Date | undefined): string => {
     if (!dateTime) return "غير محدد";
 
     try {
-        const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
-        if (isNaN(date.getTime())) return "غير محدد";
+      const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
+      if (isNaN(date.getTime())) return "غير محدد";
 
-        return new Intl.DateTimeFormat('ar-EG', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-        }).format(date);
+      return new Intl.DateTimeFormat('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }).format(date);
     } catch (error) {
-        console.error("Date formatting error:", error);
-        return "غير محدد";
+      console.error("Date formatting error:", error);
+      return "غير محدد";
     }
   };
 

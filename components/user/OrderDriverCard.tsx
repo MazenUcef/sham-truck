@@ -13,6 +13,8 @@ import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import ProductIcon from "@/assets/icons/user/OneProcuct";
 import { router } from "expo-router";
 import ConfirmationIcon from "@/assets/icons/user/ConfirmationIcon";
+import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
+import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
 
 
 
@@ -35,8 +37,8 @@ export const OrderDriverCard = ({
   orderId: string;
   status: string
 }) => {
-  console.log(dateTime);
-  
+      useOfferSocket()
+      useOrderSocket()
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
       style={{

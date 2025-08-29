@@ -9,7 +9,6 @@ const initialState: OrdersState = {
   error: null,
 };
 
-// In your createOrder thunk
 export const createOrder = createAsyncThunk<
   Order,
   {
@@ -25,16 +24,10 @@ export const createOrder = createAsyncThunk<
   { rejectValue: string }
 >("orders/createOrder", async (orderData, { rejectWithValue }) => {
   try {
-    const response = await apiService.post<Order>("/api/orders/create", orderData);
-    
-    // Add debug logging to see what's actually returned
-    console.log("API Response:", response);
-    console.log("Response data:", response);
-    
-    // Return the actual data, not the full response
-    return response.orders;
+    const response = await apiService.post<{ message: string; order: Order }>("/api/orders/create", orderData);
+    return response.order;
   } catch (error: any) {
-    console.log("Error details:", error);
+    console.log("Create Order Error:", error);
     return rejectWithValue(
       error.response?.data?.message || error.message || "Failed to create order"
     );
@@ -47,9 +40,7 @@ export const fetchRouterOrders = createAsyncThunk<
   { rejectValue: string }
 >("orders/fetchRouterOrders", async (_, { rejectWithValue }) => {
   try {
-    const response = await apiService.get<Order[]>("/api/orders/router/me");
-    console.log("res",response);
-    
+    const response = await apiService.get<{ message: string; orders: Order[] }>("/api/orders/router/me");
     return response.orders;
   } catch (error: any) {
     return rejectWithValue(
@@ -64,9 +55,7 @@ export const getOrderById = createAsyncThunk<
   { rejectValue: string }
 >("orders/getOrderById", async (id, { rejectWithValue }) => {
   try {
-    const response = await apiService.get<Order>(`/api/orders/${id}`);
-    console.log("getOrderById",response);
-    
+    const response = await apiService.get<{ message: string; order: Order }>(`/api/orders/${id}`);
     return response.order;
   } catch (error: any) {
     return rejectWithValue(
@@ -81,8 +70,8 @@ export const fetchDriverOrders = createAsyncThunk<
   { rejectValue: string }
 >("orders/fetchDriverOrders", async (_, { rejectWithValue }) => {
   try {
-    const response = await apiService.get<Order[]>("/api/orders/driver/me");
-    return response;
+    const response = await apiService.get<{ message: string; orders: Order[] }>("/api/orders/driver/me");
+    return response.orders;
   } catch (error: any) {
     return rejectWithValue(
       error.response?.data?.message || error.message || "Failed to fetch driver orders"
@@ -97,8 +86,33 @@ const ordersSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearOrders: (state) => {
+      state.orders = [];
+      state.status = "idle";
+      state.error = null
+    },
     resetStatus: (state) => {
       state.status = "idle";
+    },
+    receiveNewOrder: (state, action: PayloadAction<Order>) => {
+      // Prevent duplicate orders
+      if (!state.orders.some((order) => order.id === action.payload.id)) {
+        state.orders = [...state.orders, action.payload];
+      }
+    },
+    receiveOrderCreated: (state, action: PayloadAction<Order>) => {
+      // Prevent duplicate orders
+      if (!state.orders.some((order) => order.id === action.payload.id)) {
+        state.orders = [...state.orders, action.payload];
+      }
+    },
+    receiveOrderUpdated: (state, action: PayloadAction<Order>) => {
+      state.orders = state.orders.map((order) =>
+        order.id === action.payload.id ? action.payload : order
+      );
+      if (state.order && state.order.id === action.payload.id) {
+        state.order = action.payload;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -110,7 +124,9 @@ const ordersSlice = createSlice({
       })
       .addCase(createOrder.fulfilled, (state, action: PayloadAction<Order>) => {
         state.status = "succeeded";
-        state.orders = [...state.orders, action.payload];
+        if (!state.orders.some((order) => order.id === action.payload.id)) {
+          state.orders = [...state.orders, action.payload];
+        }
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.status = "failed";
@@ -158,6 +174,6 @@ const ordersSlice = createSlice({
   },
 });
 
-export const { clearError, resetStatus } = ordersSlice.actions;
+export const { clearError, resetStatus,clearOrders, receiveNewOrder, receiveOrderCreated, receiveOrderUpdated } = ordersSlice.actions;
 
 export default ordersSlice.reducer;

@@ -17,11 +17,6 @@ export default function Details() {
         return error ? error.message || 'هذا الحقل مطلوب' : null;
     };
 
-    const handleSubmit = (data: any) => {
-        console.log('Form submitted with data:', data);
-    };
-
-
     return (
         <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
             <View style={{ flex: 1 }}>

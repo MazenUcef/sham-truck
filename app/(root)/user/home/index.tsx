@@ -20,6 +20,8 @@ import { fetchVehicleTypes, clearError as clearVehicleError } from '@/redux/slic
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { getUserById } from '@/redux/slices/AuthSlice';
 import { clearError, createOrder, fetchRouterOrders } from '@/redux/slices/OrderSlice';
+import NotificationComponent from '@/components/global/NotificationComponent';
+import NotificationIconWithModal from '@/components/global/NotificatioWithModal';
 
 export default function Home() {
   const {
@@ -51,8 +53,6 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'عادية' | 'مغلقة' | 'مبردة'>('عادية');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-
-  console.log("ordersascsvc", orders);
 
 
 
@@ -128,8 +128,6 @@ export default function Home() {
   };
 
   const onSubmit = async (data: any) => {
-    console.log("dataaaaa", data);
-
     try {
       const orderData = {
         from_location: data.fromLocation,
@@ -141,10 +139,8 @@ export default function Home() {
         notes: data.notes,
         type: data.cargoType,
       };
-      console.log("orderData", orderData);
 
       await dispatch(createOrder(orderData)).unwrap();
-      console.log('Order created successfully');
       setSuccessModalVisible(true);
       reset();
       dispatch(fetchRouterOrders());
@@ -202,7 +198,7 @@ export default function Home() {
       >
         <View style={{ flex: 1, position: "relative" }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 24, marginBottom: 24 }}>
-            <NotificationIcon />
+            <NotificationIconWithModal />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <Text style={{ fontWeight: '700', fontSize: 16, color: "#F6F6F6" }}>مرحبا ، {user?.fullName}</Text>
               <View style={{ width: 48, height: 48, backgroundColor: "white", borderRadius: 8 }}>
@@ -339,6 +335,16 @@ export default function Home() {
                           pattern: {
                             value: /^[0-9]*$/,
                             message: 'يجب أن يكون الوزن رقماً فقط'
+                          },
+                          max: {
+                            value: 5000,
+                            message: 'الوزن الأقصى المسموح به هو 5000 كجم'
+                          },
+                          validate: (value) => {
+                            if (value && parseInt(value) > 5000) {
+                              return 'الوزن الأقصى المسموح به هو 5000 كجم';
+                            }
+                            return true;
                           }
                         }}
                         render={({ field: { onChange, onBlur, value } }) => (
@@ -350,6 +356,7 @@ export default function Home() {
                             onChangeText={onChange}
                             value={value}
                             keyboardType="numeric"
+                            maxLength={4} // Limit to 4 digits (up to 5000)
                           />
                         )}
                         name="weight"

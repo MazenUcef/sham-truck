@@ -1,30 +1,51 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { apiService } from "@/config";
-import { GeneralUser, GeneralUserState } from "@/types";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState: GeneralUserState = {
-  user: null,
-  status: "idle",
-  error: null,
-};
+// Update your types to separate the API response from the user data
+export interface GeneralUser {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  role: string;
+}
 
+export interface GeneralUserResponse {
+  message: string;
+  user: GeneralUser;
+}
+
+export interface GeneralUserState {
+  user: GeneralUser | null;
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+}
+
+// Then update your thunk
 export const getGeneralUser = createAsyncThunk<
-  GeneralUser,
+  GeneralUser, // Now this matches what we're returning (response.user)
   { id: string; role: string },
   { rejectValue: string }
 >("generalUser/getGeneralUser", async ({ id, role }, { rejectWithValue }) => {
   try {
-    const response = await apiService.get<GeneralUser>(
+    const response = await apiService.get<GeneralUserResponse>(
       `/api/auth/getGeneralUser/${id}/${role}`
     );
     
-    return response;
+    return response.user; // This returns just the user object
   } catch (error: any) {
     return rejectWithValue(
       error.response?.data?.message || error.message || "Failed to fetch user data"
     );
   }
 });
+
+
+const initialState: GeneralUserState = {
+  user: null,
+  status: "idle",
+  error: null,
+};
 
 const generalUserSlice = createSlice({
   name: "generalUser",

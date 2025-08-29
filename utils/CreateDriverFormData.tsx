@@ -3,7 +3,6 @@ import { DriverRegistration } from '@/types';
 
 export const createDriverFormData = (driverData: DriverRegistration): FormData => {
     const formData = new FormData();
-    console.log("from", driverData);
     formData.append('fullName', driverData.fullName);
     formData.append('email', driverData.email);
     formData.append('password', driverData.password);

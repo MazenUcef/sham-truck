@@ -46,7 +46,6 @@ export default function ForgetPassword() {
     };
 
     const onSubmit = async (data: any) => {
-        console.log("Submitted Data:", data);
         if (!user || !user.id) {
             alert("فشل في تغيير كلمة المرور: لا يوجد مستخدم مسجل الدخول");
             return;

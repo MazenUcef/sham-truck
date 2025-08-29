@@ -11,7 +11,6 @@ import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
 import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
 import DashedDividerIcon from "@/assets/icons/Driver/DashedDivider";
 import PositionIcon from "@/assets/icons/Driver/PositionIcon";
-import TruckIconSmall from "@/assets/icons/Driver/TruckIconSmall";
 import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import PendingIcon from "@/assets/icons/Driver/PendingIcon";
@@ -22,8 +21,9 @@ import MoneyIcon from "@/assets/icons/Driver/MoneyIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
-import { getUserById } from "@/redux/slices/AuthSlice";
 import { getGeneralUser } from "@/redux/slices/GeneralSlice";
+import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
+import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
 
 export const OfferCard = ({
     offerId,
@@ -37,7 +37,7 @@ export const OfferCard = ({
     notes,
     originalStatus,
     customerid,
-    vehicle,
+    vehicle_type,
 }: {
     offerId: string;
     from: string;
@@ -50,20 +50,20 @@ export const OfferCard = ({
     notes?: string;
     originalStatus: string;
     customerid: string
-    vehicle: string
+    vehicle_type: string
 }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [confirmationVisible, setConfirmationVisible] = useState(false);
-    const {user:orderOwner } = useSelector((state: RootState) => state.generalUser)
-    console.log("orderOwner",orderOwner?.user.phoneNumber);
-    
+    const { user: orderOwner } = useSelector((state: RootState) => state.generalUser)
+
     const dispatch = useDispatch<AppDispatch>()
-    const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes)
-    const [loading, setLoading] = useState(false);
-    console.log("status", status);
 
-    console.log("customerid", customerid);
+    useEffect(() => {
+        dispatch(getVehicleTypeById(vehicle_type))
+    }, [])
 
+    useOfferSocket()
+    useOrderSocket()
 
     useEffect(() => {
         if (customerid) {
@@ -160,11 +160,7 @@ export const OfferCard = ({
                     <ClockIconMini />
                 </View>
             </View>
-            <View style={[styles.rowBetween, { marginTop: 16 }]}>
-                <View style={{ flexDirection: "row", gap: 12 }}>
-                    <Text style={styles.text}>{vehicle}</Text>
-                    <TruckIconSmall width={16} height={16} color={"gray"} />
-                </View>
+            <View style={[{ marginTop: 16 }]}>
                 <View style={{ flexDirection: "row", gap: 12 }}>
                     <Text style={styles.text}>{type}</Text>
                     <TypeDFurnIcon />
@@ -185,7 +181,7 @@ export const OfferCard = ({
                     <>
                         <TouchableOpacity
                             style={{ width: 102, height: 46, borderRadius: 8, backgroundColor: "#00CD00", gap: 8, flexDirection: "row", justifyContent: "center", alignItems: "center" }}
-                            onPress={() => Linking.openURL(`tel:${orderOwner?.user?.phoneNumber}`)}
+                            onPress={() => Linking.openURL(`tel:${orderOwner?.phoneNumber}`)}
                         >
                             <Text style={{ fontWeight: 800, fontSize: 14, color: "white" }}>اتصال</Text>
                             <HeadsetPhoneIcon />

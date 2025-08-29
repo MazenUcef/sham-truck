@@ -51,7 +51,6 @@ export default function ProfilePage() {
     };
 
     const onSubmit = async (data: any) => {
-        console.log("Submitted Data:", data);
         if (!user || !user.id) {
             alert("فشل في حفظ التغييرات: لا يوجد مستخدم مسجل الدخول");
             return;
@@ -62,7 +61,6 @@ export default function ProfilePage() {
             email: data.email,
             phoneNumber: data.phoneNumber,
         };
-console.log("userdata",userData);
 
         try {
             await dispatch(updateUser(userData)).unwrap();
