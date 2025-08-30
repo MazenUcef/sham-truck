@@ -6,7 +6,7 @@ import { Images } from '@/constants'
 import { RootState } from '@/redux/store'
 import { router } from 'expo-router'
 import React, { useEffect } from 'react'
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, View } from 'react-native'
 import { useSelector } from 'react-redux'
 
 export default function Auth() {
@@ -41,7 +41,7 @@ export default function Auth() {
         />
         <View style={{ marginTop: 16, width: "100%", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
           <ThemedText weight='bold' variant='2xl'>مرحبا بك</ThemedText>
-          <Text style={{ fontWeight: "600", fontSize: 14, color: "#878A8E", marginTop: 4 }}>يرجي الأختيار بين الخيارات للمتابعة</Text>
+          <ThemedText style={{ fontWeight: "600", fontSize: 14, color: "#878A8E", marginTop: 4 }}>يرجي الأختيار بين الخيارات للمتابعة</ThemedText>
         </View>
         <View style={{ marginTop: 40, width: "100%", gap: 20 }}>
           <Button

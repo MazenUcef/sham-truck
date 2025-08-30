@@ -1,7 +1,8 @@
 import GoogleIcon from '@/assets/icons/Auth/GoogleIcon';
 import LogoutIcon from '@/assets/icons/Auth/LogoutIcon';
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
+import Button from '../ui/Button';
 import ThemedText from '../ui/ThemedText';
 
 interface FormStepperProps {
@@ -33,7 +34,7 @@ export default function FormStepper({ currentStep, totalSteps, onNext, loading }
           <ActivityIndicator color="white" />
         ) : (
           <>
-            <ThemedText style={{ fontWeight: '800', fontSize: 12, color: "white" }}>
+            <ThemedText style={{ fontSize: 12, color: "white" }}>
               {currentStep === totalSteps ? 'تسجيل الحساب' : 'المتابعة'}
             </ThemedText>
             {currentStep === totalSteps && (
@@ -44,27 +45,11 @@ export default function FormStepper({ currentStep, totalSteps, onNext, loading }
       </TouchableOpacity>
       <View style={{ marginTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <View style={{ width: 136, borderWidth: 1, borderColor: "#E4E4E4" }} />
-        <Text style={{ fontWeight: "600", fontSize: 10, color: "#878A8E" }}>او المتابعة من خلال</Text>
+        <ThemedText weight='bold' style={{ fontSize: 10, color: "#878A8E" }}>او المتابعة من خلال</ThemedText>
         <View style={{ width: 136, borderWidth: 1, borderColor: "#E4E4E4" }} />
       </View>
-      <TouchableOpacity
-        style={{
-          marginTop: 24,
-          height: 46,
-          flexDirection: "row",
-          gap: 10,
-          borderRadius: 8,
-          justifyContent: "center",
-          alignItems: "center",
-          borderWidth: 1,
-          borderColor: "#CED4DA",
-          opacity: loading ? 0.5 : 1 // Reduce opacity when loading
-        }}
-        disabled={loading} // Disable when loading
-      >
-        <GoogleIcon />
-        <Text style={{ fontWeight: "600", fontSize: 12, color: "#878A8E" }}>تسجيل الدخول عبر</Text>
-      </TouchableOpacity>
+      {/* gogle Sign In */}
+      <Button title='تسجيل الدخول عبر' variant='outline' textStyle={{ color: "#878A8E" }} style={{ marginTop: 24 }} leftIcon={<GoogleIcon />} disabled={loading} />
     </View>
   );
-}
+} 
