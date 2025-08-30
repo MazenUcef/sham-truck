@@ -251,10 +251,10 @@ export default function VehicleInfo() {
               onPress={() => setModalVisible(false)}
             >
               <ThemedText style={styles.closeButtonText}>ألغاء</ThemedText>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+            </TouchableOpacity >
+          </View >
+        </View >
+      </Modal >
     </>
   );
 }

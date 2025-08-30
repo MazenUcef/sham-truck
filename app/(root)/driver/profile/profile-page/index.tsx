@@ -62,12 +62,9 @@ export default function ProfilePage() {
             fullName: data.fullName,
             email: data.email,
             phoneNumber: data.phone,
-            // vehicleNumber and vehicleTypeId are optional in UpdateDriverData
-            // If they are required, you need to add form fields or use existing user data
-            vehicleNumber: (user as Driver).vehicleNumber, // Use existing vehicleNumber
-            vehicleTypeId: (user as Driver).vehicleType?._id, // Use existing vehicleType._id
+            vehicleNumber: (user as Driver).vehicleNumber,
+            vehicleTypeId: (user as Driver).vehicleType?._id,
         };
-        console.log("userrrrrrrrrrrrrrrrr", user);
 
         try {
             const formData = createUpdateDriverFormData(userData);

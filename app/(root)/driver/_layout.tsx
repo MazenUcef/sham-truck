@@ -14,11 +14,6 @@ import ActiveOfferIcon from "@/assets/icons/Driver/ActiveOffersIcon";
 
 
 export default function Layout() {
-    const insets = useSafeAreaInsets();
-    const segments = useSegments();
-
-    console.log("Current segments:", segments);
-
     return (
         <Tabs
             screenOptions={{

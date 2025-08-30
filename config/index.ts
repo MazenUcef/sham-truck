@@ -16,8 +16,6 @@ httpClient.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
         const token = await AsyncStorage.getItem("token")
         if (token) {
-            console.log("token from ",token);
-            
             config.headers.set("Authorization", `Bearer ${token}`)
         }
         return config;

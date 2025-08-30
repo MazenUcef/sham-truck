@@ -16,7 +16,6 @@ export const signupUser = createAsyncThunk<
   SignupUserData,
   { rejectValue: string }
 >("auth/signupUser", async (data, { rejectWithValue }) => {
-  console.log(data);
 
   try {
     const response = await apiService.post<{ user: User; token: string }>("/api/auth/signup/user", data);

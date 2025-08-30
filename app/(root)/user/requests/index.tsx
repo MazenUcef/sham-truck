@@ -119,11 +119,9 @@ const Requests = () => {
       );
     }
   }, [ordersStatus, ordersError, dispatch]);
-  console.log("logorders", orders);
 
   const renderOrderItem = ({ item }: { item: Order }) => {
     if (!item) return null;
-    console.log(item);
 
     return (
 

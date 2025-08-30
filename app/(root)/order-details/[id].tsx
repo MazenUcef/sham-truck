@@ -1,25 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Modal,
   Alert,
-  ActivityIndicator,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
 import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
-import ConfirmationIcon from "@/assets/icons/Driver/ConfirmationIcon";
 import DashedDividerIcon from "@/assets/icons/Driver/DashedDivider";
 import PositionIcon from "@/assets/icons/Driver/PositionIcon";
-import RightIcon from "@/assets/icons/Driver/RightIcon";
 import TruckIconSmall from "@/assets/icons/Driver/TruckIconSmall";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
-import { Images } from "@/constants";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { AppDispatch, RootState } from "@/redux/store";
 import SelectedOfferDetails from "@/components/user/SelectedOfferDetails";
@@ -27,15 +21,14 @@ import OffersList from "@/components/user/OffersList";
 import DeleteConfirmationModal from "@/components/user/DeleteConfirmationModal";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { Offer, Order } from "@/types";
-import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
 import LeftIcon from "@/assets/icons/Auth/LeftIcon";
 import { clearError as clearOrderError, getOrderById } from "@/redux/slices/OrderSlice";
-import { acceptOffer, clearError, fetchOrderOffers } from "@/redux/slices/OfferSlice";
+import { clearError, fetchOrderOffers } from "@/redux/slices/OfferSlice";
+import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
+import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
 
 const OrderDetails = () => {
   const { id } = useLocalSearchParams();
-  console.log("idddddddddddddddddddddddddddddddd", id);
-
   const navigation = useNavigation();
   useEffect(() => {
     navigation.setOptions({
@@ -48,13 +41,9 @@ const OrderDetails = () => {
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const { status: orderStatus, error: orderError ,orders ,order:getByIdoRDER} = useSelector((state: RootState) => state.orders);
-  const { vehicleType: tyo } = useSelector((state: RootState) => state.vehicleTypes);
   const { status: offersStatus, error: offersError, offers: fetchedOffers } = useSelector((state: RootState) => state.offers);
-  console.log("fetched offers", fetchedOffers);
-  console.log("tyo", tyo);
-  console.log("orderrrrrrrrr", orders);
-  console.log("getByIdoRDEREWE", getByIdoRDER?.order);
-
+  useOfferSocket();
+  useOrderSocket()
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (typeof id === "string") {
@@ -70,24 +59,7 @@ const OrderDetails = () => {
     };
     fetchOrderDetails();
   }, [id, dispatch]);
-
-console.log("order",order);
-
-
-
-  const handleAcceptOffer = async (offer: Offer) => {
-    if (typeof id === "string") {
-      try {
-        await dispatch(acceptOffer(offer.id)).unwrap();
-        setSelectedOffer(offer);
-        alert("تم قبول العرض بنجاح ✅");
-      } catch (err: any) {
-        console.error("Failed to accept offer:", err);
-        alert("فشل في قبول العرض: " + (err || "خطأ غير معروف"));
-      }
-    }
-  };
-
+  
   const handleDeleteOrder = async () => {
     if (typeof id === "string") {
       try {

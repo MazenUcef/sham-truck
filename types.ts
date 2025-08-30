@@ -123,6 +123,7 @@ export interface LoginCredentials {
 
 export interface Order {
   id: string;
+  customer_id?: string;
   customer: {
     id: string;
     fullName: string;
@@ -166,13 +167,14 @@ export interface VehicleTypesState {
 
 export interface Offer {
   id: string;
-  order_id: string;
+  order_id: string | Order;
   driver_id: string;
   price: number;
   notes?: string;
   status: "Pending" | "Accepted" | "Rejected";
   createdAt: string;
   updatedAt: string;
+  vehicle_type: string;
 }
 
 export interface OffersState {
@@ -184,15 +186,55 @@ export interface OffersState {
 
 
 export interface GeneralUser {
-  id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  role: string;
+  message: string;
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    role: string;
+  }
 }
 
 export interface GeneralUserState {
   user: GeneralUser | null;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+}
+
+
+export interface Notification {
+  _id: string;
+  user_id?: string | { _id: string; fullName: string; phoneNumber: string };
+  driver_id?: string | { _id: string; fullName: string; vehicleNumber: string };
+  order_id?: string | { _id: string; from_location: any; to_location: any; status: string };
+  type: 'new_offer' | 'offer_accepted' | 'offer_rejected' | 'order_created' | 'order_updated' | 'order_completed' | 'ring';
+  title: string;
+  message: string;
+  is_read: boolean;
+  metadata?: any;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaginatedNotifications {
+  notifications: Notification[];
+  total: number;
+  unreadCount: number;
+  totalPages: number;
+  currentPage: number;
+  limit?: number;
+}
+
+export interface NotificationsState {
+  notifications: Notification[];
+  unreadCount: number;
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    total: number;
+    limit: number;
+  };
 }

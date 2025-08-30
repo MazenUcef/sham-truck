@@ -17,35 +17,37 @@ import Animated, {
 } from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { clearError as clearOffersError, createOffer } from "@/redux/slices/OfferSlice";
-import NotificationIcon from "@/assets/icons/user/NotificationIcon";
 import LocationPinIcon from "@/assets/icons/Driver/PositionIcon";
 import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
 import FilterIcon from "@/assets/icons/Driver/FilterIcon";
 import { Images, SYRIAN_CITIES } from "@/constants";
 import { OrderCard } from "@/components/driver/OrderCard";
-import { fetchDriverOrders ,clearError as clearOrderError} from "@/redux/slices/OrderSlice";
+import { fetchDriverOrders, clearError as clearOrderError, clearOrders } from "@/redux/slices/OrderSlice";
 import { getDriverById } from "@/redux/slices/AuthSlice";
+import NotificationIconWithModal from "@/components/global/NotificatioWithModal";
+import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
+import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
 
 export default function Home() {
   const { user } = useSelector((state: RootState) => state.auth);
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
-  const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
   const dispatch = useDispatch<AppDispatch>();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCity, setSelectedCity] = useState("حلب");
   const [searchText, setSearchText] = useState("");
   const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
   const [filterCity, setFilterCity] = useState("الكل");
-  const { offers, status, error } = useSelector((state: RootState) => state.offers);
-console.log("offersssssss",offers);
-console.log("ordersssssss",orders);
+  useOfferSocket();
 
+  useOrderSocket();
 
-
+  const clearandrefetch = async () => {
+    await dispatch(clearOrders())
+    await dispatch(fetchDriverOrders());
+  }
 
   useEffect(() => {
-    dispatch(fetchDriverOrders());
+    clearandrefetch()
   }, []);
 
   useEffect(() => {
@@ -55,36 +57,13 @@ console.log("ordersssssss",orders);
   }, []);
 
 
-  console.log("ordersssssss", orders);
-
-
   useEffect(() => {
     if (ordersError) {
       console.error("Orders error:", ordersError);
       dispatch(clearOrderError());
     }
-    if (offersError) {
-      console.error("Offers error:", offersError);
-      dispatch(clearOffersError());
-    }
   }, []);
 
-
-  const handleOfferSubmit = async (data: { amount: number }, orderDetails: any) => {
-    try {
-      const offerData = {
-        order_id: orderDetails._id,
-        price: data.amount,
-        notes: "",
-      };
-      await dispatch(createOffer(offerData)).unwrap();
-      dispatch(clearOffersError());
-    } catch (error) {
-      console.error("Failed to submit offer:", error);
-    } finally {
-      setModalVisible(false);
-    }
-  };
 
   const SkeletonCard = () => {
     const opacity = useSharedValue(0.3);
@@ -164,7 +143,7 @@ console.log("ordersssssss",orders);
           marginBottom: 24,
         }}
       >
-        <NotificationIcon />
+        <NotificationIconWithModal />
         <TouchableOpacity
           onPress={() => setCityDropdownVisible(true)}
           style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
@@ -306,17 +285,17 @@ console.log("ordersssssss",orders);
           />
         ) : (
           <FlatList
-            data={orders?.orders?.filter((item) => new Date(item.date_time_transport) > new Date())}
+            data={orders?.filter((item) => new Date(item.date_time_transport) > new Date())}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <OrderCard
+                key={item.id}
                 type={item.type}
                 vehicle={item.vehicle_type.category}
                 from={item.from_location}
                 to={item.to_location}
                 weight={item.weight_or_volume}
                 dateTime={item.date_time_transport}
-                onOfferSubmit={handleOfferSubmit}
                 orderDetails={item}
               />
             )}

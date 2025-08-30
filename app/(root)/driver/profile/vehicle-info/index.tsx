@@ -24,6 +24,7 @@ import { fetchVehicleTypes, getVehicleTypeById } from "@/redux/slices/VehicleTyp
 import { Driver, UpdateDriverData } from "@/types";
 import { createUpdateDriverFormData } from "@/utils/CreateDriverFormData";
 import { getDriverById, updateDriver } from "@/redux/slices/AuthSlice";
+import { fetchDriverOrders } from "@/redux/slices/OrderSlice";
 
 export default function VehicleInfo() {
   const dispatch = useDispatch<AppDispatch>();
@@ -125,6 +126,7 @@ export default function VehicleInfo() {
       const formData = createUpdateDriverFormData(userData);
       await dispatch(updateDriver(formData)).unwrap();
       await dispatch(getDriverById()).unwrap();
+      await dispatch(fetchDriverOrders()).unwrap();
       alert("تم حفظ التغييرات بنجاح ✅");
     } catch (error: any) {
       console.error("Update failed:", error);
@@ -328,7 +330,7 @@ export default function VehicleInfo() {
                     .map((vehicle) => (
                       <TouchableOpacity
                         key={vehicle._id}
-                        style={[styles.vehicleTypeItem, user?.role === "driver" && vehicle._id === user?.vehicleType?._id ? styles.selectedVehicleType : {}]}
+                        style={[styles.vehicleTypeItem, user?.role === "driver" && vehicle._id === user?.vehicleType?._id ? {} : {}]}
                         onPress={() => {
                           setValue("vehicleType", vehicle.type);
                           setValue("vehicleTypeId", vehicle._id);
