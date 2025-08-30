@@ -1,65 +1,68 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect } from 'react'
-import { Images } from '@/constants'
-import UserIcon from '@/assets/icons/Auth/UserIcon'
 import AutoIcon from '@/assets/icons/Auth/AutoIcon'
-import { router } from 'expo-router'
-import { useSelector } from 'react-redux'
+import UserIcon from '@/assets/icons/Auth/UserIcon'
+import Button from '@/components/ui/Button'
+import ThemedText from '@/components/ui/ThemedText'
+import { Images } from '@/constants'
 import { RootState } from '@/redux/store'
+import { router } from 'expo-router'
+import React, { useEffect } from 'react'
+import { Image, StyleSheet, Text, View } from 'react-native'
+import { useSelector } from 'react-redux'
 
 export default function Auth() {
-    const { isAuthenticated, user, token } = useSelector((state: RootState) => state.auth)
-    console.log("isAuthenticated", isAuthenticated);
-    console.log("user", user);
-    console.log("role", user?.role);
-    console.log("token", token);
-    useEffect(() => {
-        if (isAuthenticated && user?.role) {
-            if (user?.role === "router") {
-                router.replace('/(root)/user/home')
-            } else {
-                router.replace('/(root)/driver/home')
-            }
-        }
-    }, []);
-
-    const handlePress = (role: 'driver' | 'user') => {
-        router.push({
-            pathname: '/(auth)/signup',
-            params: { role }
-        });
+  const { isAuthenticated, user, token } = useSelector((state: RootState) => state.auth)
+  console.log("isAuthenticated", isAuthenticated);
+  console.log("user", user);
+  console.log("role", user?.role);
+  console.log("token", token);
+  useEffect(() => {
+    if (isAuthenticated && user?.role) {
+      if (user?.role === "router") {
+        router.replace('/(root)/user/home')
+      } else {
+        router.replace('/(root)/driver/home')
+      }
     }
+  }, []);
 
-    return (
-        <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 300 }}>
-            <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20 }}>
-                <Image
-                    source={Images.logo}
-                    style={{ width: 256, height: 256, alignSelf: "center" }}
-                />
-                <View style={{ marginTop: 16, width: "100%", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                    <Text style={{ fontWeight: "700", fontSize: 24 }}>مرحبا بك</Text>
-                    <Text style={{ fontWeight: "600", fontSize: 14, color: "#878A8E", marginTop: 4 }}>يرجي الأختيار بين الخيارات للمتابعة</Text>
-                </View>
-                <View style={{ marginTop: 40, width: "100%", gap: 20 }}>
-                    <TouchableOpacity
-                        onPress={() => handlePress('user')}
-                        style={{ height: 56, borderRadius: 8, gap: 10, backgroundColor: "#0077B6", borderWidth: 1, flexDirection: "row", justifyContent: "center", alignItems: "center", borderColor: "#A5A7AA" }}
-                    >
-                        <Text style={{ fontWeight: "800", fontSize: 14, color: "white" }}>تسجيل حساب عميل</Text>
-                        <UserIcon />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => handlePress('driver')}
-                        style={{ height: 56, borderRadius: 8, gap: 10, backgroundColor: "#F9844A", borderWidth: 1, flexDirection: "row", justifyContent: "center", alignItems: "center", borderColor: "#A5A7AA" }}
-                    >
-                        <Text style={{ fontWeight: "800", fontSize: 14, color: "white" }}>تسجيل حساب سائق</Text>
-                        <AutoIcon />
-                    </TouchableOpacity>
-                </View>
-            </View>
+  const handlePress = (role: 'driver' | 'user') => {
+    router.push({
+      pathname: '/(auth)/signup',
+      params: { role }
+    });
+  }
+
+  return (
+    <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 300 }}>
+      <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20 }}>
+        <Image
+          source={Images.logo}
+          style={{ width: 256, height: 256, alignSelf: "center" }}
+        />
+        <View style={{ marginTop: 16, width: "100%", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+          <ThemedText weight='bold' variant='2xl'>مرحبا بك</ThemedText>
+          <Text style={{ fontWeight: "600", fontSize: 14, color: "#878A8E", marginTop: 4 }}>يرجي الأختيار بين الخيارات للمتابعة</Text>
         </View>
-    )
+        <View style={{ marginTop: 40, width: "100%", gap: 20 }}>
+          <Button
+            title="تسجيل حساب عميل"
+            variant="primary"
+            size="lg"
+            rightIcon={<UserIcon />}
+            onPress={() => handlePress('user')}
+          />
+
+          <Button
+            title="تسجيل حساب سائق"
+            variant="secondary"
+            size="lg"
+            rightIcon={<AutoIcon />}
+            onPress={() => handlePress('driver')}
+          />
+        </View>
+      </View>
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({})

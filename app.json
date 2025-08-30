@@ -8,6 +8,44 @@
     "scheme": "shamtruk",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "fonts": [
+      {
+        "asset": "./assets/fonts/Cairo/static/Cairo-Regular.ttf",
+        "family": "Cairo-Regular"
+      },
+      {
+        "asset": "./assets/fonts/Cairo/static/Cairo-Medium.ttf",
+        "family": "Cairo-Medium"
+      },
+      {
+        "asset": "./assets/fonts/Cairo/static/Cairo-Bold.ttf",
+        "family": "Cairo-Bold"
+      },
+      {
+        "asset": "./assets/fonts/Cairo/static/Cairo-SemiBold.ttf",
+        "family": "Cairo-SemiBold"
+      },
+      {
+        "asset": "./assets/fonts/Cairo/static/Cairo-Light.ttf",
+        "family": "Cairo-Light"
+      },
+      {
+        "asset": "./assets/fonts/Cairo/static/Cairo-ExtraLight.ttf",
+        "family": "Cairo-ExtraLight"
+      },
+      {
+        "asset": "./assets/fonts/Cairo/static/Cairo-Black.ttf",
+        "family": "Cairo-Black"
+      },
+      {
+        "asset": "./assets/fonts/Cairo/static/Cairo-ExtraBold.ttf",
+        "family": "Cairo-ExtraBold"
+      },
+      {
+        "asset": "./assets/fonts/SpaceMono-Regular.ttf",
+        "family": "SpaceMono"
+      }
+    ],
     "ios": {
       "supportsTablet": true
     },
