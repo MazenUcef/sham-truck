@@ -1,16 +1,16 @@
+import { OfferUserCard } from "@/components/user/OfferuserCard";
+import { clearError, fetchRouterOrders } from "@/redux/slices/OrderSlice";
+import { AppDispatch, RootState } from "@/redux/store";
+import { Order } from "@/types";
 import React, { useEffect } from "react";
 import {
+  Alert,
   FlatList,
   Text,
   View,
-  Alert,
 } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { OfferUserCard } from "@/components/user/OfferUserCard";
-import { clearError, fetchRouterOrders } from "@/redux/slices/OrderSlice";
-import { Order } from "@/types";
 
 const SkeletonOfferUserCard = () => {
   const opacity = useSharedValue(0.3);
@@ -122,7 +122,7 @@ const Requests = () => {
 
   const renderOrderItem = ({ item }: { item: Order }) => {
     if (!item) return null;
-    
+
     return (
       <OfferUserCard
         type={item.vehicle_type?.category || "غير محدد"} // Use vehicle_type.category instead of item.type

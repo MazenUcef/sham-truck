@@ -1,18 +1,19 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useForm, FormProvider } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
 import LeftIcon from '@/assets/icons/Auth/LeftIcon';
 import FormStepper from '@/components/auth/FormStepper';
-import VehicleInfo from '@/components/auth/VehicleInfo';
 import PersonalInfoForm from '@/components/auth/PersonalInfoForm';
-import UserPersonalInfoForm from '@/components/auth/UserPersonalInfoForm';
-import { AppDispatch, RootState } from '@/redux/store';
-import { createDriverFormData } from '@/utils/CreateDriverFormData';
-import { login, signupDriver, signupUser } from '@/redux/slices/AuthSlice';
 import SignInForm from '@/components/auth/SigninForm';
+import UserPersonalInfoForm from '@/components/auth/UserPersonalInfoForm';
+import VehicleInfo from '@/components/auth/VehicleInfo';
+import ThemedText from '@/components/ui/ThemedText';
+import { login, signupDriver, signupUser } from '@/redux/slices/AuthSlice';
+import { AppDispatch, RootState } from '@/redux/store';
 import { DriverRegistration, LoginCredentials, UserRegistration } from '@/types';
+import { createDriverFormData } from '@/utils/CreateDriverFormData';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function Signup() {
   const { role } = useLocalSearchParams<{ role: 'driver' | 'user' }>();
@@ -37,9 +38,12 @@ export default function Signup() {
     },
   });
 
+  console.log('stataus', status);
+
+
   const { control, handleSubmit, formState: { errors }, getValues } = methods;
 
-  const onSubmit = async (data: any) => {    
+  const onSubmit = async (data: any) => {
     try {
       if (role === 'user') {
         const userData: UserRegistration = {
@@ -47,7 +51,7 @@ export default function Signup() {
           email: data.email,
           password: data.password,
           phoneNumber: data.phoneNumber,
-        };      
+        };
         await dispatch(signupUser(userData)).unwrap();
         Alert.alert('Success', 'Account created successfully!');
         router.replace('/(root)/user/home');
@@ -76,14 +80,14 @@ export default function Signup() {
       const credentials: LoginCredentials = {
         email: data.email,
         password: data.password,
-        role: role === "user" ? "router"  : "driver",
+        role: role === "user" ? "router" : "driver",
       };
       await dispatch(login(credentials)).unwrap();
       Alert.alert('Success', 'Logged in successfully!');
       router.replace(`/(root)/${role}/home`);
     } catch (err: any) {
       console.log(err);
-      
+
       // Error is handled by useEffect
     }
   };
@@ -127,11 +131,11 @@ export default function Signup() {
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
       <View style={{ flex: 1 }}>
-        <View style={{ marginBottom: 40, flexDirection: "row", marginLeft: 24, gap: 90 }}>
+        <View style={{ marginBottom: 40, paddingHorizontal: 24, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <TouchableOpacity onPress={onBack}>
             <LeftIcon />
           </TouchableOpacity>
-          <Text style={{ fontWeight: "700", fontSize: 18, lineHeight: 24, color: "white" }}>
+          <ThemedText weight='semiBold' style={{ color: 'white' }}>
             {activeTab === 'login' && role === "user"
               ? 'تسجيل دخول مستخدم'
               : activeTab === 'login' && role === "driver"
@@ -139,7 +143,7 @@ export default function Signup() {
                 : activeTab === 'signup' && role === "user"
                   ? 'انشاء حساب مستخدم'
                   : 'انشاء حساب سائق'}
-          </Text>
+          </ThemedText>
         </View>
 
         <View style={{ flex: 1, backgroundColor: "white", padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
@@ -149,14 +153,14 @@ export default function Signup() {
               onPress={() => setActiveTab('signup')}
               disabled={status === 'loading'}
             >
-              <Text style={[styles.tabText, activeTab === 'signup' && styles.activeTabText]}>انشاء حساب</Text>
+              <ThemedText style={[styles.tabText, activeTab === 'signup' && styles.activeTabText]}>انشاء حساب</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'login' && styles.activeTab]}
               onPress={() => setActiveTab('login')}
               disabled={status === 'loading'}
             >
-              <Text style={[styles.tabText, activeTab === 'login' && styles.activeTabText]}>تسجيل دخول</Text>
+              <ThemedText style={[styles.tabText, activeTab === 'login' && styles.activeTabText]}>تسجيل دخول</ThemedText>
             </TouchableOpacity>
           </View>
 
