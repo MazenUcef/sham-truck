@@ -13,7 +13,6 @@ export default function Layout() {
     const insets = useSafeAreaInsets();
     const { height } = Dimensions.get('window');
     
-    // Check if device has a notch or uses gesture navigation
     const hasBottomSpace = insets.bottom > 0;
     
     return (
