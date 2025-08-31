@@ -89,19 +89,17 @@ const ordersSlice = createSlice({
     clearOrders: (state) => {
       state.orders = [];
       state.status = "idle";
-      state.error = null
+      state.error = null;
     },
     resetStatus: (state) => {
       state.status = "idle";
     },
     receiveNewOrder: (state, action: PayloadAction<Order>) => {
-      // Prevent duplicate orders
       if (!state.orders.some((order) => order.id === action.payload.id)) {
         state.orders = [...state.orders, action.payload];
       }
     },
     receiveOrderCreated: (state, action: PayloadAction<Order>) => {
-      // Prevent duplicate orders
       if (!state.orders.some((order) => order.id === action.payload.id)) {
         state.orders = [...state.orders, action.payload];
       }
@@ -114,10 +112,12 @@ const ordersSlice = createSlice({
         state.order = action.payload;
       }
     },
+    removeOrder: (state, action: PayloadAction<string>) => {
+      state.orders = state.orders.filter((order) => order.id !== action.payload);
+    },
   },
   extraReducers: (builder) => {
     builder
-      // Create Order
       .addCase(createOrder.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -132,7 +132,6 @@ const ordersSlice = createSlice({
         state.status = "failed";
         state.error = action.payload || "Failed to create order";
       })
-      // Fetch Router Orders
       .addCase(fetchRouterOrders.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -145,7 +144,6 @@ const ordersSlice = createSlice({
         state.status = "failed";
         state.error = action.payload || "Failed to fetch router orders";
       })
-      // Get Order By ID
       .addCase(getOrderById.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -158,7 +156,6 @@ const ordersSlice = createSlice({
         state.status = "failed";
         state.error = action.payload || "Failed to fetch order";
       })
-      // Fetch Driver Orders
       .addCase(fetchDriverOrders.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -174,6 +171,14 @@ const ordersSlice = createSlice({
   },
 });
 
-export const { clearError, resetStatus,clearOrders, receiveNewOrder, receiveOrderCreated, receiveOrderUpdated } = ordersSlice.actions;
+export const {
+  clearError,
+  clearOrders,
+  resetStatus,
+  receiveNewOrder,
+  receiveOrderCreated,
+  receiveOrderUpdated,
+  removeOrder, // Export the new action
+} = ordersSlice.actions;
 
 export default ordersSlice.reducer;

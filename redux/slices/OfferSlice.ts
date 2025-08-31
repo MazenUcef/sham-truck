@@ -100,11 +100,18 @@ const offersSlice = createSlice({
       }
     },
     receiveOfferAccepted: (state, action: PayloadAction<Offer>) => {
-      state.offers = state.offers.map((offer) =>
-        offer.id === action.payload.id
-          ? { ...offer, status: "Accepted" }
-          : { ...offer, status: "Rejected" }
-      );
+      const acceptedOrderId = action.payload.order_id;
+
+      state.offers = state.offers.map((offer) => {
+        if (offer.id === action.payload.id) {
+          return { ...offer, status: "Accepted" };
+        } else if (offer.order_id === acceptedOrderId) {
+          return { ...offer, status: "Rejected" };
+        } else {
+          return offer;
+        }
+      });
+
       state.offer = action.payload;
     },
     receiveOfferRejected: (state, action: PayloadAction<string>) => {
@@ -156,7 +163,7 @@ const offersSlice = createSlice({
         state.status = "failed";
         state.error = action.payload || "Failed to fetch order offers";
       })
-      // Accept Offer
+
       .addCase(acceptOffer.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -164,10 +171,9 @@ const offersSlice = createSlice({
       .addCase(acceptOffer.fulfilled, (state, action: PayloadAction<Offer>) => {
         state.status = "succeeded";
         state.offer = action.payload;
+
         state.offers = state.offers.map((offer) =>
-          offer.id === action.payload.id
-            ? action.payload
-            : { ...offer, status: "Rejected" }
+          offer.id === action.payload.id ? action.payload : offer
         );
       })
       .addCase(acceptOffer.rejected, (state, action) => {

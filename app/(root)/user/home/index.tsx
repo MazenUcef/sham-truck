@@ -178,7 +178,6 @@ export default function Home() {
       const formattedDate = dateFormatter.format(date);
       let formattedTime = timeFormatter.format(date);
 
-      // Replace English AM/PM with Arabic equivalents
       formattedTime = formattedTime
         .replace("AM", "ص")
         .replace("PM", "م");
@@ -224,8 +223,8 @@ export default function Home() {
             }}>
               <ActivityIndicator size="large" color="#F9844A" />
             </View>
-          ) : latestOrder && latestOrder.id ? ( // Add check for latestOrder.id
-            <View style={{ position: "absolute", zIndex: 1000, top: 70, right: 25 }}>
+          ) : latestOrder && latestOrder.id ? (
+            <View style={{alignSelf:"center"}}>
               <Text style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</Text>
               <OrderDriverCard
                 type={typeof latestOrder.vehicle_type === 'string' ? latestOrder.vehicle_type : latestOrder.vehicle_type?.category}
@@ -239,7 +238,7 @@ export default function Home() {
             </View>
           ) : null}
 
-          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: latestOrder ? 170 : 0, paddingTop: latestOrder ? 100 : 20, paddingBottom: 100 }}>
+          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: latestOrder ? 10 : 0, paddingTop: 20, paddingBottom: 100 }}>
             <Text style={{ fontWeight: '700', fontSize: 18, lineHeight: 24, alignSelf: "flex-end" }}>إنشاء طلب جديد</Text>
 
             <View style={{ marginTop: 24 }}>
@@ -356,7 +355,7 @@ export default function Home() {
                             onChangeText={onChange}
                             value={value}
                             keyboardType="numeric"
-                            maxLength={4} // Limit to 4 digits (up to 5000)
+                            maxLength={4}
                           />
                         )}
                         name="weight"
@@ -465,7 +464,6 @@ export default function Home() {
                 </View>
               </View>
 
-              {/* Vehicle Type */}
               <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>اختر نوع الشاحنة</Text>
               <TouchableOpacity
                 style={{ marginTop: 8, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}
@@ -492,7 +490,6 @@ export default function Home() {
                 </Text>
               )}
 
-              {/* Submit Button */}
               <TouchableOpacity
                 style={styles.signInButton}
                 onPress={handleSubmit(onSubmit)}
@@ -507,7 +504,6 @@ export default function Home() {
           </View>
         </View>
 
-        {/* Vehicle Type Modal */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -590,7 +586,6 @@ export default function Home() {
             </View>
           </View>
         </Modal>
-        {/* Success Modal */}
         <Modal
           animationType="fade"
           transparent={true}

@@ -124,7 +124,6 @@ const Requests = () => {
     if (!item) return null;
     
     return (
-
       <OfferUserCard
         type={item.vehicle_type?.category || "غير محدد"} // Use vehicle_type.category instead of item.type
         from={item.from_location || "غير محدد"}

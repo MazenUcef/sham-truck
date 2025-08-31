@@ -25,7 +25,8 @@ import { Order } from "@/types";
 import { createOffer } from "@/redux/slices/OfferSlice";
 import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
 import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
-import { fetchDriverOrders } from "@/redux/slices/OrderSlice";
+import { fetchDriverOrders, removeOrder } from "@/redux/slices/OrderSlice";
+import { router } from "expo-router";
 
 export const OrderCard = ({
   from,
@@ -49,14 +50,13 @@ export const OrderCard = ({
   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [lastSubmittedOrderId, setLastSubmittedOrderId] = useState<string | null>(null);
 
-  // Get offers state from Redux
   const { status: offersStatus, error: offersError } = useSelector((state: RootState) => state.offers);
 
   const { control, handleSubmit, watch, reset } = useForm<{ amount: string }>({
     defaultValues: { amount: "" },
   });
-  useOfferSocket()
-  useOrderSocket()
+  useOfferSocket();
+  useOrderSocket();
   const amountValue = watch("amount");
 
   useEffect(() => {
@@ -64,12 +64,14 @@ export const OrderCard = ({
       setConfirmationVisible(true);
       setModalVisible(false);
       reset({ amount: "" });
+      dispatch(removeOrder(orderDetails.id));
+      router.push("/(root)/driver/requests")
     }
     if (offersStatus === "failed" && offersError && lastSubmittedOrderId === orderDetails.id) {
       console.error("Offer submission error:", offersError);
       alert(`${offersError}`);
     }
-  }, [offersStatus, offersError, orderDetails.id, lastSubmittedOrderId, reset]);
+  }, [offersStatus, offersError, orderDetails.id, lastSubmittedOrderId, reset, dispatch]);
 
   useEffect(() => {
     if (confirmationVisible) {
@@ -81,7 +83,6 @@ export const OrderCard = ({
     }
   }, [confirmationVisible]);
 
-  // Handle offer submission
   const handleOfferSubmit = async (data: { amount: string }) => {
     const amount = parseFloat(data.amount);
     if (isNaN(amount)) {
@@ -91,28 +92,28 @@ export const OrderCard = ({
 
     setLastSubmittedOrderId(orderDetails.id);
 
-    // Dispatch the createOffer action
-    await dispatch(createOffer({
-      order_id: orderDetails.id,
-      price: amount,
-      // Add notes if needed: notes: "Some notes"
-    }) as any);
-    await dispatch(fetchDriverOrders())
+    await dispatch(
+      createOffer({
+        order_id: orderDetails.id,
+        price: amount,
+      }) as any
+    );
+    await dispatch(fetchDriverOrders());
   };
 
   const formatDateTime = (dateTime: string | Date | undefined): string => {
     if (!dateTime) return "غير محدد";
 
     try {
-      const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
+      const date = typeof dateTime === "string" ? new Date(dateTime) : dateTime;
       if (isNaN(date.getTime())) return "غير محدد";
 
-      return new Intl.DateTimeFormat('ar-EG', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+      return new Intl.DateTimeFormat("ar-EG", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
         hour12: true,
       }).format(date);
     } catch (error) {
@@ -145,7 +146,6 @@ export const OrderCard = ({
           <Text style={{ color: "gray" }}>إغلاق</Text>
         </TouchableOpacity>
       )}
-      {/* From → To */}
       <View
         style={{
           flexDirection: "column",
@@ -166,7 +166,6 @@ export const OrderCard = ({
         </View>
       </View>
 
-      {/* Weight + Date */}
       <View style={styles.rowBetween}>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <Text style={styles.text}>{weight}</Text>
@@ -178,7 +177,6 @@ export const OrderCard = ({
         </View>
       </View>
 
-      {/* Vehicle + Type (only in modal) */}
       {showExtraRow && (
         <View style={[styles.rowBetween, { marginTop: 16 }]}>
           <View style={{ flexDirection: "row", gap: 12 }}>
@@ -229,7 +227,11 @@ export const OrderCard = ({
             <Controller
               control={control}
               name="amount"
-              rules={{ required: true, validate: (value) => !isNaN(parseFloat(value)) || "Please enter a valid number" }}
+              rules={{
+                required: true,
+                validate: (value) =>
+                  !isNaN(parseFloat(value)) || "Please enter a valid number",
+              }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   value={value}
@@ -249,24 +251,15 @@ export const OrderCard = ({
 
   return (
     <>
-      {/* Normal Card */}
-      <View >
-        {renderCardContent(false, false)}
-      </View>
-
-      {/* Details Modal */}
+      <View>{renderCardContent(false, false)}</View>
       <Modal
         visible={modalVisible}
         transparent
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          {renderCardContent(true, true)}
-        </View>
+        <View style={styles.modalOverlay}>{renderCardContent(true, true)}</View>
       </Modal>
-
-      {/* Confirmation Modal */}
       <Modal
         visible={confirmationVisible}
         transparent

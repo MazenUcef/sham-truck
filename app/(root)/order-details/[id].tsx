@@ -63,8 +63,6 @@ const OrderDetails = () => {
   const handleDeleteOrder = async () => {
     if (typeof id === "string") {
       try {
-        // Implement API call to delete order
-        // Example: await apiService.delete(`/api/orders/${id}`);
         setModalVisible(false);
         router.back();
       } catch (err) {

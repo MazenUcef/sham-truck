@@ -50,7 +50,6 @@ export const OrderDriverCard = ({
         paddingHorizontal: 20,
         flexDirection: "column",
         alignItems: "flex-end",
-        marginBottom: 12,
         backgroundColor: "white",
       }}
     >

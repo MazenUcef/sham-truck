@@ -50,7 +50,7 @@ const OffersList: React.FC<OffersListProps> = ({ offers }) => {
         }}
       >
         {
-          item.status === "Pending" ?
+          item.status === "Offered" ?
             (
               <TouchableOpacity
                 style={{

@@ -48,6 +48,7 @@ export const OfferUserCard = ({
         alignItems: "flex-end",
         marginBottom: 12,
         backgroundColor: "white",
+        marginHorizontal:"auto"
       }}
     >
       {/* From → To */}

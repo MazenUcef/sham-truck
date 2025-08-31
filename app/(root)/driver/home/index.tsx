@@ -37,17 +37,12 @@ export default function Home() {
   const [searchText, setSearchText] = useState("");
   const [isCityDropdownVisible, setCityDropdownVisible] = useState(false);
   const [filterCity, setFilterCity] = useState("الكل");
+  const [isLoading, setIsLoading] = useState(true);
   useOfferSocket();
-
   useOrderSocket();
 
-  const clearandrefetch = async () => {
-    await dispatch(clearOrders())
-    await dispatch(fetchDriverOrders());
-  }
-
   useEffect(() => {
-    clearandrefetch()
+    fetchOrders();
   }, []);
 
   useEffect(() => {
@@ -56,7 +51,6 @@ export default function Home() {
     }
   }, []);
 
-
   useEffect(() => {
     if (ordersError) {
       console.error("Orders error:", ordersError);
@@ -64,6 +58,17 @@ export default function Home() {
     }
   }, []);
 
+  const fetchOrders = async () => {
+    try {
+      await dispatch(clearOrders());
+      setIsLoading(true);
+      await dispatch(fetchDriverOrders()).unwrap();
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const SkeletonCard = () => {
     const opacity = useSharedValue(0.3);
@@ -129,8 +134,6 @@ export default function Home() {
       </Animated.View>
     );
   };
-
-
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -276,12 +279,12 @@ export default function Home() {
           </View>
         </Modal>
 
-        {ordersStatus === "loading" ? (
+        {isLoading ? (
           <FlatList
             data={[1, 2, 3]}
             keyExtractor={(item) => item.toString()}
             renderItem={() => <SkeletonCard />}
-            style={{ marginTop: 24 }}
+            style={{ marginTop: 24, marginBottom: 65 }}
           />
         ) : (
           <FlatList
@@ -305,6 +308,8 @@ export default function Home() {
                 <Text style={{ fontWeight: 700, fontSize: 18, color: "#878A8E" }}>لا يوجد طلبات حاليا</Text>
               </View>
             }
+            refreshing={ordersStatus === "loading"}
+            onRefresh={fetchOrders}
             style={{ marginTop: 24, marginBottom: 65 }}
           />
         )}

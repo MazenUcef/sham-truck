@@ -5,32 +5,133 @@ import {
   StyleSheet,
   Text,
   View,
-  ActivityIndicator,
+  Animated,
 } from "react-native";
-import { Images, mockOffers } from "@/constants";
+import { Images } from "@/constants";
 import { OfferCard } from "@/components/driver/OfferCard";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { clearOffers, fetchDriverOffers } from "@/redux/slices/OfferSlice";
 import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
-import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
 
+const SkeletonLoader = ({ style }: { style?: any }) => {
+  const fadeAnim = new Animated.Value(0.3);
 
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [fadeAnim]);
+
+  return (
+    <Animated.View
+      style={[
+        {
+          backgroundColor: "#E4E4E4",
+          borderRadius: 4,
+        },
+        style,
+      ]}
+    />
+  );
+};
+
+const OfferCardSkeleton = () => {
+  return (
+    <View
+      style={{
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#E4E4E4",
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        flexDirection: "column",
+        alignItems: "flex-end",
+        marginBottom: 12,
+        backgroundColor: "white",
+      }}
+    >
+      <View
+        style={{
+          marginBottom: 17,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        <SkeletonLoader style={{ width: 24, height: 24, borderRadius: 12 }} />
+        <View style={{ flexDirection: "column", alignItems: "flex-end" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <SkeletonLoader style={{ width: 100, height: 16 }} />
+            <SkeletonLoader style={{ width: 16, height: 16 }} />
+          </View>
+          <SkeletonLoader
+            style={{ width: 30, height: 20, marginVertical: 8, marginRight: 7.2 }}
+          />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <SkeletonLoader style={{ width: 100, height: 16 }} />
+            <SkeletonLoader style={{ width: 16, height: 16 }} />
+          </View>
+        </View>
+      </View>
+
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <SkeletonLoader style={{ width: 80, height: 16 }} />
+          <SkeletonLoader style={{ width: 16, height: 16 }} />
+        </View>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <SkeletonLoader style={{ width: 80, height: 16 }} />
+          <SkeletonLoader style={{ width: 16, height: 16 }} />
+        </View>
+      </View>
+
+      <View style={{ marginTop: 16 }}>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <SkeletonLoader style={{ width: 80, height: 16 }} />
+          <SkeletonLoader style={{ width: 16, height: 16 }} />
+        </View>
+      </View>
+
+      <View style={{ width: "100%", marginTop: 16 }}>
+        <SkeletonLoader style={{ width: "100%", height: 46, borderRadius: 8 }} />
+      </View>
+    </View>
+  );
+};
 
 export default function Requests() {
   const dispatch = useDispatch<AppDispatch>();
   const { offers, status, error } = useSelector((state: RootState) => state.offers);
   const [isLoading, setIsLoading] = useState(true);
-  const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes)
+  const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes);
+
 
   useOfferSocket();
+  
   useEffect(() => {
     fetchOffers();
   }, []);
 
   const fetchOffers = async () => {
     try {
-      await dispatch(clearOffers())
       setIsLoading(true);
       await dispatch(fetchDriverOffers()).unwrap();
     } catch (error) {
@@ -42,27 +143,61 @@ export default function Requests() {
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("ar-SA", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-
   if (isLoading) {
     return (
-      <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#FFFFFF" />
-        <Text style={{ color: 'white', marginTop: 16 }}>جاري تحميل العروض...</Text>
+      <View
+        style={{
+          backgroundColor: "#F9844A",
+          flex: 1,
+          paddingTop: 84,
+        }}
+      >
+        <View
+          style={{
+            marginBottom: 40,
+            flexDirection: "row",
+            alignSelf: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontWeight: 700,
+              fontSize: 18,
+              lineHeight: 24,
+              color: "white",
+            }}
+          >
+            العروض التي قدمتها
+          </Text>
+        </View>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "white",
+            padding: 20,
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+          }}
+        >
+          <FlatList
+            data={[1, 2, 3]} // Render three skeleton cards
+            keyExtractor={(item) => item.toString()}
+            renderItem={() => <OfferCardSkeleton />}
+            style={{ marginBottom: 80 }}
+          />
+        </View>
       </View>
     );
   }
-
-
-
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -81,8 +216,8 @@ export default function Requests() {
         }}
       >
         {error && (
-          <View style={{ padding: 16, backgroundColor: '#FFEBEE', borderRadius: 8, marginBottom: 16 }}>
-            <Text style={{ color: '#D32F2F', textAlign: 'center' }}>{error}</Text>
+          <View style={{ padding: 16, backgroundColor: "#FFEBEE", borderRadius: 8, marginBottom: 16 }}>
+            <Text style={{ color: "#D32F2F", textAlign: "center" }}>{error}</Text>
           </View>
         )}
 
@@ -91,7 +226,7 @@ export default function Requests() {
           data={offers}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
-            const order = typeof item.order_id === 'object' ? item.order_id : null;
+            const order = typeof item.order_id === "object" ? item.order_id : null;
             return (
               <OfferCard
                 key={item.id}
@@ -121,92 +256,10 @@ export default function Requests() {
               </Text>
             </View>
           }
-          refreshing={status === 'loading'}
+          refreshing={status === "loading"}
           onRefresh={fetchOffers}
         />
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContent: {
-    width: "80%",
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-  },
-  tabContainer: {
-    width: "100%",
-  },
-  tab: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 8,
-  },
-  activeTab: {
-    backgroundColor: "#0077B6",
-  },
-  tabText: {
-    color: "#878A8E",
-    fontWeight: "600",
-    fontSize: 14,
-    textAlign: "right",
-  },
-  activeTabText: {
-    color: "white",
-  },
-  vehicleTypesContainer: {
-    marginVertical: 10,
-    width: "100%",
-  },
-  vehicleTypeItem: {
-    height: 76,
-    width: "100%",
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    gap: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E4E4E4",
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  closeButton: {
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#878A8E",
-  },
-  closeButtonText: {
-    color: "#878A8E",
-    fontWeight: "500",
-    textAlign: "center",
-    fontSize: 16,
-  },
-  signInButton: {
-    marginTop: 24,
-    height: 46,
-    backgroundColor: "#F9844A",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 5,
-  },
-  signInButtonText: {
-    fontWeight: "800",
-    fontSize: 12,
-    color: "white",
-  },
-});
