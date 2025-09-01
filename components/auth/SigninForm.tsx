@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
   signInButtonText: {
     fontSize: 13,
     color: "white",
-    width: 90
   },
   dividerContainer: {
     marginTop: 24,

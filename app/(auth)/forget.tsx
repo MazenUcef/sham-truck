@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
+import ThemedText from '@/components/ui/ThemedText'
 import React from 'react'
 
 export default function Forget() {
     return (
         <View>
-            <Text>forget</Text>
+            <ThemedText>forget</ThemedText>
         </View>
     )
 }

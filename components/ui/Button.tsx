@@ -1,6 +1,7 @@
 import { getFontFamily } from '@/constants/fonts';
 import React, { ReactNode } from 'react';
-import { ActivityIndicator, GestureResponderEvent, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, GestureResponderEvent, StyleProp, StyleSheet, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import ThemedText from './ThemedText';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -81,15 +82,15 @@ export const Button: React.FC<ButtonProps> = ({
       ) : (
         <View style={styles.content}>
           {leftIcon ? <View style={styles.icon}>{leftIcon}</View> : null}
-          <Text
+          <ThemedText
             style={[
               styles.text,
-              { fontFamily: getFontFamily('bold'), fontSize: FONT_SIZES[size], color: textColor },
+              { fontFamily: getFontFamily('semiBold'), fontSize: FONT_SIZES[size], color: textColor },
               textStyle,
             ]}
           >
             {title}
-          </Text>
+          </ThemedText>
           {rightIcon ? <View style={styles.icon}>{rightIcon}</View> : null}
         </View>
       )}

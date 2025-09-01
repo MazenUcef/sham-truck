@@ -1,6 +1,6 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { apiService } from "@/config";
 import { VehicleType, VehicleTypesState } from "@/types";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Alert } from "react-native";
 
 const initialState: VehicleTypesState = {

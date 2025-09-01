@@ -23,6 +23,7 @@ export default function Signup() {
 
   const dispatch = useDispatch<AppDispatch>();
   const { status, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { status: vehicleTypesStatus } = useSelector((state: RootState) => state.vehicleTypes);
 
   const methods = useForm({
     mode: "onChange",
@@ -38,7 +39,8 @@ export default function Signup() {
     },
   });
 
-  console.log('stataus', status);
+  console.log('auth status:', status);
+  console.log('vehicle types status:', vehicleTypesStatus);
 
 
   const { control, handleSubmit, formState: { errors }, getValues } = methods;
