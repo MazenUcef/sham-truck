@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import ThemedText from '@/components/ui/ThemedText';
 import NotificationIcon from '@/assets/icons/user/NotificationIcon';
 import NotificationComponent from './NotificationComponent';
 import { useSelector } from 'react-redux';
@@ -16,7 +17,7 @@ const NotificationIconWithModal: React.FC = () => {
                     <NotificationIcon />
                     {unreadCount > 0 && (
                         <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{unreadCount}</Text>
+                            <ThemedText style={styles.badgeText}>{unreadCount}</ThemedText>
                         </View>
                     )}
                 </View>
