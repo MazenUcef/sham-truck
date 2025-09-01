@@ -1,27 +1,27 @@
+import ArrowToLeftIcon from '@/assets/icons/Auth/ArrowToLeftIcon';
+import SteeringIcon from '@/assets/icons/Auth/SteeringIcon';
 import CenterPointIcon from '@/assets/icons/user/CenterPointIcon';
 import ClockIcon from '@/assets/icons/user/ClockIcon';
 import LocationIcon from '@/assets/icons/user/LocationIcon';
-import NotificationIcon from '@/assets/icons/user/NotificationIcon';
-import { Images } from '@/constants';
-import React, { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { format } from 'date-fns';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import ArrowToLeftIcon from '@/assets/icons/Auth/ArrowToLeftIcon';
-import SteeringIcon from '@/assets/icons/Auth/SteeringIcon';
-import WeightIcon from '@/assets/icons/user/WeightIcon';
 import PlusIcon from '@/assets/icons/user/PlusIcon';
+import WeightIcon from '@/assets/icons/user/WeightIcon';
+import NotificationIconWithModal from '@/components/global/NotificatioWithModal';
+import Button from '@/components/ui/Button';
+import ThemedText from '@/components/ui/ThemedText';
+import ThemedTextInput from '@/components/ui/ThemedTextInput';
 import { OrderDriverCard } from '@/components/user/OrderDriverCard';
-import { router } from 'expo-router';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/redux/store';
-import { fetchVehicleTypes, clearError as clearVehicleError } from '@/redux/slices/VehicleTypesSlice';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { Images } from '@/constants';
 import { getUserById } from '@/redux/slices/AuthSlice';
 import { clearError, createOrder, fetchRouterOrders } from '@/redux/slices/OrderSlice';
-import NotificationComponent from '@/components/global/NotificationComponent';
-import NotificationIconWithModal from '@/components/global/NotificatioWithModal';
+import { fetchVehicleTypes } from '@/redux/slices/VehicleTypesSlice';
+import { AppDispatch, RootState } from '@/redux/store';
+import { format } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useSharedValue, withTiming } from 'react-native-reanimated';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function Home() {
   const {
@@ -200,7 +200,7 @@ export default function Home() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 24, marginBottom: 24 }}>
             <NotificationIconWithModal />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <Text style={{ fontWeight: '700', fontSize: 16, color: "#F6F6F6" }}>مرحبا ، {user?.fullName}</Text>
+              <ThemedText weight='bold' style={{ fontSize: 16, color: "#F6F6F6" }}>مرحبا ، {user?.fullName}</ThemedText>
               <View style={{ width: 48, height: 48, backgroundColor: "white", borderRadius: 8 }}>
                 <Image
                   style={{ width: 48, height: 48 }}
@@ -226,7 +226,7 @@ export default function Home() {
             </View>
           ) : latestOrder && latestOrder.id ? ( // Add check for latestOrder.id
             <View style={{ position: "absolute", zIndex: 1000, top: 70, right: 25 }}>
-              <Text style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</Text>
+              <ThemedText style={{ fontWeight: 700, fontSize: 18, color: "white", alignSelf: "flex-end", marginBottom: 16 }}>طلباتك</ThemedText>
               <OrderDriverCard
                 type={typeof latestOrder.vehicle_type === 'string' ? latestOrder.vehicle_type : latestOrder.vehicle_type?.category}
                 from={latestOrder.from_location}
@@ -240,18 +240,18 @@ export default function Home() {
           ) : null}
 
           <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: latestOrder ? 170 : 0, paddingTop: latestOrder ? 100 : 20, paddingBottom: 100 }}>
-            <Text style={{ fontWeight: '700', fontSize: 18, lineHeight: 24, alignSelf: "flex-end" }}>إنشاء طلب جديد</Text>
+            <ThemedText weight='bold' style={{ fontSize: 18, lineHeight: 24, alignSelf: "flex-end" }}>إنشاء طلب جديد</ThemedText>
 
             <View style={{ marginTop: 24 }}>
               {/* From and To Location */}
-              <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>موقع الطلب</Text>
+              <ThemedText style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>موقع الطلب</ThemedText>
               <View style={{ marginTop: 8 }}>
                 <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
                   <Controller
                     control={control}
                     rules={{ required: 'موقع الحمولة مطلوب' }}
                     render={({ field: { onChange, onBlur, value } }) => (
-                      <TextInput
+                      <ThemedTextInput
                         style={{ flex: 1, textAlign: 'right' }}
                         placeholderTextColor={"#878A8E"}
                         placeholder='أدخل موقع الحمولة'
@@ -274,7 +274,7 @@ export default function Home() {
                     control={control}
                     rules={{ required: 'وجهة الحمولة مطلوب' }}
                     render={({ field: { onChange, onBlur, value } }) => (
-                      <TextInput
+                      <ThemedTextInput
                         style={{ flex: 1, textAlign: 'right' }}
                         placeholderTextColor={"#878A8E"}
                         placeholder='أدخل وجهة الحمولة'
@@ -288,23 +288,23 @@ export default function Home() {
                   <LocationIcon />
                 </View>
                 {(errors.fromLocation || errors.toLocation) && (
-                  <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
+                  <ThemedText style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
                     {errors.toLocation?.message || errors.fromLocation?.message}
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
 
               {/* Cargo Type and Weight */}
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                 <View style={{ flex: 1, marginRight: 10 }}>
-                  <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>نوع الحمولة</Text>
+                  <ThemedText style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>نوع الحمولة</ThemedText>
                   <View style={{ marginTop: 8 }}>
                     <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
                       <Controller
                         control={control}
                         rules={{ required: 'نوع الحمولة مطلوب' }}
                         render={({ field: { onChange, onBlur, value } }) => (
-                          <TextInput
+                          <ThemedTextInput
                             style={{ flex: 1, textAlign: 'right' }}
                             placeholderTextColor={"#878A8E"}
                             placeholder='أدخل نوع الحمولة'
@@ -318,14 +318,14 @@ export default function Home() {
                       <WeightIcon />
                     </View>
                     {errors.cargoType && (
-                      <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
+                      <ThemedText style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
                         {getErrorMessage(errors.cargoType)}
-                      </Text>
+                      </ThemedText>
                     )}
                   </View>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>وزن الحمولة (كجم)</Text>
+                  <ThemedText style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>وزن الحمولة (كجم)</ThemedText>
                   <View style={{ marginTop: 8 }}>
                     <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
                       <Controller
@@ -348,7 +348,7 @@ export default function Home() {
                           }
                         }}
                         render={({ field: { onChange, onBlur, value } }) => (
-                          <TextInput
+                          <ThemedTextInput
                             style={{ flex: 1, textAlign: 'right' }}
                             placeholderTextColor={"#878A8E"}
                             placeholder='وزن الحمولة'
@@ -364,9 +364,9 @@ export default function Home() {
                       <WeightIcon />
                     </View>
                     {errors.weight && (
-                      <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
+                      <ThemedText style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
                         {getErrorMessage(errors.weight)}
-                      </Text>
+                      </ThemedText>
                     )}
                   </View>
                 </View>
@@ -374,14 +374,14 @@ export default function Home() {
 
               {/* Loading Time */}
               <View style={{ marginTop: 20 }}>
-                <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>مدة التحميل</Text>
+                <ThemedText style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>مدة التحميل</ThemedText>
                 <View style={{ marginTop: 8 }}>
                   <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
                     <Controller
                       control={control}
                       rules={{ required: 'مدة التحميل مطلوبة' }}
                       render={({ field: { onChange, onBlur, value } }) => (
-                        <TextInput
+                        <ThemedTextInput
                           style={{ flex: 1, textAlign: 'right' }}
                           placeholderTextColor={"#878A8E"}
                           placeholder='أدخل مدة التحميل (مثال: 2 ساعات)'
@@ -395,16 +395,16 @@ export default function Home() {
                     <ClockIcon />
                   </View>
                   {errors.loadingTime && (
-                    <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
+                    <ThemedText style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
                       {getErrorMessage(errors.loadingTime)}
-                    </Text>
+                    </ThemedText>
                   )}
                 </View>
               </View>
 
               {/* Date Picker */}
               <View style={{ marginTop: 20 }}>
-                <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>وقت التحميل</Text>
+                <ThemedText style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>وقت التحميل</ThemedText>
                 <View style={{ marginTop: 8 }}>
                   <TouchableOpacity
                     onPress={showDatePicker}
@@ -415,9 +415,9 @@ export default function Home() {
                       rules={{ required: 'وقت التحميل مطلوب' }}
                       render={({ field: { onChange } }) => (
                         <>
-                          <Text style={{ flex: 1, textAlign: 'right', color: '#878A8E' }}>
+                          <ThemedText style={{ flex: 1, textAlign: 'right', color: '#878A8E' }}>
                             {formattedDate}
-                          </Text>
+                          </ThemedText>
                         </>
                       )}
                       name="dateNtime"
@@ -425,9 +425,9 @@ export default function Home() {
                     <ClockIcon />
                   </TouchableOpacity>
                   {errors.dateNtime && (
-                    <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
+                    <ThemedText style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
                       {getErrorMessage(errors.dateNtime)}
-                    </Text>
+                    </ThemedText>
                   )}
                   <DateTimePickerModal
                     isVisible={isDatePickerVisible}
@@ -443,13 +443,13 @@ export default function Home() {
 
               {/* Notes */}
               <View style={{ marginTop: 20 }}>
-                <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>ملاحظات</Text>
+                <ThemedText style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>ملاحظات</ThemedText>
                 <View style={{ marginTop: 8 }}>
                   <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
                     <Controller
                       control={control}
                       render={({ field: { onChange, onBlur, value } }) => (
-                        <TextInput
+                        <ThemedTextInput
                           style={{ flex: 1, textAlign: 'right' }}
                           placeholderTextColor={"#878A8E"}
                           placeholder='أدخل ملاحظات إضافية (اختياري)'
@@ -466,7 +466,7 @@ export default function Home() {
               </View>
 
               {/* Vehicle Type */}
-              <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>اختر نوع الشاحنة</Text>
+              <ThemedText style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end", marginTop: 20 }}>اختر نوع الشاحنة</ThemedText>
               <TouchableOpacity
                 style={{ marginTop: 8, height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", width: "100%", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}
                 onPress={() => setModalVisible(true)}
@@ -477,9 +477,9 @@ export default function Home() {
                   render={({ field: { onChange, value } }) => (
                     <>
                       <ArrowToLeftIcon />
-                      <Text style={{ flex: 1, textAlign: 'right', color: value ? '#000' : '#878A8E' }}>
+                      <ThemedText style={{ flex: 1, textAlign: 'right', color: value ? '#000' : '#878A8E' }}>
                         {value || 'اختر نوع المركبة'}
-                      </Text>
+                      </ThemedText>
                       <SteeringIcon />
                     </>
                   )}
@@ -487,22 +487,25 @@ export default function Home() {
                 />
               </TouchableOpacity>
               {errors.vehicleType && (
-                <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
+                <ThemedText style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
                   {getErrorMessage(errors.vehicleType)}
-                </Text>
+                </ThemedText>
               )}
 
               {/* Submit Button */}
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.signInButton}
                 onPress={handleSubmit(onSubmit)}
                 disabled={ordersStatus === "loading"}
               >
-                <Text style={styles.signInButtonText}>
+                <ThemedText style={styles.signInButtonText}>
                   إنشاء الطلب
-                </Text>
+                </ThemedText>
                 <PlusIcon />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
+              <View style={{ marginTop: 24 }}>
+                <Button variant='secondary' title='إنشاء الطلب' rightIcon={<PlusIcon />} onPress={handleSubmit(onSubmit)} disabled={ordersStatus === "loading"} />
+              </View>
             </View>
           </View>
         </View>
@@ -533,27 +536,27 @@ export default function Home() {
                     ]}
                     onPress={() => setActiveTab(tab)}
                   >
-                    <Text style={[
+                    <ThemedText weight='semiBold' style={[
                       styles.tabText,
                       activeTab === tab && styles.activeTabText
                     ]}>
                       {tab}
-                    </Text>
+                    </ThemedText>
                   </TouchableOpacity>
                 ))}
               </View>
 
               <View style={{ marginTop: 24 }}>
-                <Text style={{ fontWeight: '500', fontSize: 16, textAlign: 'right' }}>الخيارات</Text>
+                <ThemedText weight='semiBold' style={{ fontSize: 16, textAlign: 'right' }}>الخيارات</ThemedText>
               </View>
 
               <View style={[styles.vehicleTypesContainer, {}]}>
                 {vehicleStatus === "loading" ? (
-                  <Text style={{ alignSelf: "flex-start" }}>جاري تحميل أنواع المركبات...</Text>
+                  <ThemedText style={{ alignSelf: "flex-start" }}>جاري تحميل أنواع المركبات...</ThemedText>
                 ) : vehicleTypes && vehicleTypes.length > 0 ? (
                   vehicleTypes
-                    .filter((vehicle) => vehicle.category === activeTab)
-                    .map((vehicle) => (
+                    .filter((vehicle: any) => vehicle.category === activeTab)
+                    .map((vehicle: any) => (
                       <TouchableOpacity
                         key={vehicle._id}
                         style={[styles.vehicleTypeItem]}
@@ -569,15 +572,15 @@ export default function Home() {
                           style={{ width: 80, height: 60, borderRadius: 8 }}
                         />
                         <View style={{ flex: 1, alignItems: "flex-start" }}>
-                          <Text style={{ fontWeight: 800, fontSize: 14 }}>{vehicle.type}</Text>
-                          <Text style={{ fontWeight: 600, fontSize: 12, color: "#878A8E", marginTop: 6 }}>
+                          <ThemedText weight='bold' style={{ fontSize: 14 }}>{vehicle.type}</ThemedText>
+                          <ThemedText weight='semiBold' style={{ fontSize: 12, color: "#878A8E", marginTop: 6 }}>
                             {vehicle.category}
-                          </Text>
+                          </ThemedText>
                         </View>
                       </TouchableOpacity>
                     ))
                 ) : (
-                  <Text>لا توجد أنواع مركبات متاحة</Text>
+                  <ThemedText>لا توجد أنواع مركبات متاحة</ThemedText>
                 )}
               </View>
 
@@ -585,7 +588,7 @@ export default function Home() {
                 style={[styles.closeButton]}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={styles.closeButtonText}>إلغاء</Text>
+                <ThemedText weight='semiBold' style={styles.closeButtonText}>إلغاء</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
@@ -602,7 +605,7 @@ export default function Home() {
               <Image
                 source={Images.check}
               />
-              <Text style={styles.successModalText}>تم إنشاء الطلب بنجاح!</Text>
+              <ThemedText style={styles.successModalText}>تم إنشاء الطلب بنجاح!</ThemedText>
             </View>
           </View>
         </Modal>
@@ -638,7 +641,6 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: '#878A8E',
-    fontWeight: '600',
     fontSize: 14,
     textAlign: 'right',
   },
@@ -672,24 +674,8 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: '#878A8E',
-    fontWeight: '500',
     textAlign: 'center',
     fontSize: 16
-  },
-  signInButton: {
-    marginTop: 24,
-    height: 46,
-    backgroundColor: "#F9844A",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 5
-  },
-  signInButtonText: {
-    fontWeight: '800',
-    fontSize: 12,
-    color: "white"
   },
   orderCard: {
     width: 300,

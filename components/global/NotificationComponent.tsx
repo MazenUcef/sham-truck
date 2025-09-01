@@ -1,26 +1,25 @@
+import ThemedText from '@/components/ui/ThemedText';
+import { addNotification, deleteNotification, fetchNotifications, fetchUnreadCount, markAllAsRead, markAsRead } from '@/redux/slices/NotificationSlice';
+import { AppDispatch, RootState } from '@/redux/store';
+import { useSocket } from '@/sockets/SocketContext';
+import { Notification } from '@/types';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  Modal,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
   Dimensions,
-  Image,
+  FlatList,
+  Modal,
   RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/redux/store';
-import { useSocket } from '@/sockets/SocketContext';
-import { addNotification, deleteNotification, fetchNotifications, fetchUnreadCount, markAllAsRead, markAsRead } from '@/redux/slices/NotificationSlice';
-import { Notification } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
 
 const { height, width } = Dimensions.get('window');
 
@@ -127,17 +126,17 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ isVisible
         </View>
 
         <View style={styles.notificationContent}>
-          <Text style={[styles.notificationTitle, !item.is_read && styles.unreadText]}>
+          <ThemedText style={[styles.notificationTitle, !item.is_read && styles.unreadText]}>
             {item.title}
-          </Text>
-          <Text style={styles.notificationText} numberOfLines={2}>
+          </ThemedText>
+          <ThemedText style={styles.notificationText} numberOfLines={2}>
             {item.message}
-          </Text>
+          </ThemedText>
 
           <View style={styles.notificationMeta}>
-            <Text style={styles.notificationTime}>
+            <ThemedText style={styles.notificationTime}>
               {formatTime(item.createdAt)}
-            </Text>
+            </ThemedText>
 
             <View style={styles.actionButtons}>
               {!item.is_read && (
@@ -146,7 +145,7 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ isVisible
                   onPress={() => handleMarkAsRead(item._id)}
                 >
                   <Ionicons name="checkmark" size={16} color="#4CAF50" />
-                  <Text style={styles.readButtonText}>تعليم كمقروء</Text>
+                  <ThemedText style={styles.readButtonText}>تعليم كمقروء</ThemedText>
                 </TouchableOpacity>
               )}
 
@@ -180,10 +179,10 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ isVisible
         <Animated.View style={[styles.modalContent, animatedStyle]}>
           <View style={styles.header}>
             <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerText}>الإشعارات</Text>
+              <ThemedText style={styles.headerText}>الإشعارات</ThemedText>
               {unreadCount > 0 && (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{unreadCount}</Text>
+                  <ThemedText style={styles.badgeText}>{unreadCount}</ThemedText>
                 </View>
               )}
             </View>
@@ -195,7 +194,7 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ isVisible
                   onPress={handleMarkAllAsRead}
                 >
                   <Ionicons name="checkmark-done" size={20} color="#F9844A" />
-                  <Text style={styles.markAllText}>تعليم الكل</Text>
+                  <ThemedText style={styles.markAllText}>تعليم الكل</ThemedText>
                 </TouchableOpacity>
               )}
 
@@ -209,18 +208,18 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ isVisible
             {status === 'loading' && !refreshing ? (
               <View style={styles.centerContent}>
                 <Ionicons name="notifications" size={48} color="#E4E4E4" />
-                <Text style={styles.statusText}>جاري تحميل الإشعارات...</Text>
+                <ThemedText style={styles.statusText}>جاري تحميل الإشعارات...</ThemedText>
               </View>
             ) : error ? (
               <View style={styles.centerContent}>
                 <Ionicons name="alert-circle" size={48} color="#F44336" />
-                <Text style={styles.errorText}>{error}</Text>
+                <ThemedText style={styles.errorText}>{error}</ThemedText>
               </View>
             ) : notifications?.length === 0 ? (
               <View style={styles.centerContent}>
                 <Ionicons name="notifications-off" size={48} color="#E4E4E4" />
-                <Text style={styles.emptyText}>لا توجد إشعارات حتى الآن</Text>
-                <Text style={styles.emptySubtext}>سنخطرك عندما تصل أي إشعارات جديدة</Text>
+                <ThemedText style={styles.emptyText}>لا توجد إشعارات حتى الآن</ThemedText>
+                <ThemedText style={styles.emptySubtext}>سنخطرك عندما تصل أي إشعارات جديدة</ThemedText>
               </View>
             ) : (
               <FlatList

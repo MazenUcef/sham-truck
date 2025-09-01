@@ -1,8 +1,20 @@
+import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
+import FilterIcon from "@/assets/icons/Driver/FilterIcon";
+import LocationPinIcon from "@/assets/icons/Driver/PositionIcon";
+import { OrderCard } from "@/components/driver/OrderCard";
+import NotificationIconWithModal from "@/components/global/NotificatioWithModal";
+import { Images, SYRIAN_CITIES } from "@/constants";
+import { getDriverById } from "@/redux/slices/AuthSlice";
+import { clearError as clearOrderError, clearOrders, fetchDriverOrders } from "@/redux/slices/OrderSlice";
+import { AppDispatch, RootState } from "@/redux/store";
+import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
+import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
+import { Order } from "@/types";
 import React, { useEffect, useState } from "react";
 import {
+  FlatList,
   Image,
   Modal,
-  FlatList,
   StyleSheet,
   Text,
   TextInput,
@@ -10,23 +22,12 @@ import {
   View,
 } from "react-native";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
   Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
-import LocationPinIcon from "@/assets/icons/Driver/PositionIcon";
-import ArrowToBottomIcon from "@/assets/icons/Driver/ArrowToBottomIcon";
-import FilterIcon from "@/assets/icons/Driver/FilterIcon";
-import { Images, SYRIAN_CITIES } from "@/constants";
-import { OrderCard } from "@/components/driver/OrderCard";
-import { fetchDriverOrders, clearError as clearOrderError, clearOrders } from "@/redux/slices/OrderSlice";
-import { getDriverById } from "@/redux/slices/AuthSlice";
-import NotificationIconWithModal from "@/components/global/NotificatioWithModal";
-import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
-import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
 
 export default function Home() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -285,7 +286,7 @@ export default function Home() {
           />
         ) : (
           <FlatList
-            data={orders?.filter((item) => new Date(item.date_time_transport) > new Date())}
+            data={orders && (orders.length > 0 as ArrayLike<Order> | any) && orders?.filter((item) => new Date(item.date_time_transport) > new Date())}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <OrderCard
