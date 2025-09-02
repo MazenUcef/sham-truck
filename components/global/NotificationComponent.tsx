@@ -43,12 +43,20 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ isVisible
     setRefreshing(false);
   }, [dispatch]);
 
-  useEffect(() => {
-    if (isVisible) {
-      dispatch(fetchNotifications({ page: 1, limit: 20 }));
-      dispatch(fetchUnreadCount());
-    }
-  }, [dispatch, isVisible]);
+useEffect(() => {
+  if (isVisible) {
+    const loadData = async () => {
+      try {
+        await dispatch(fetchNotifications({ page: 1, limit: 20 }));
+        await dispatch(fetchUnreadCount());
+      } catch (error) {
+        console.error('Failed to load notifications:', error);
+      }
+    };
+    
+    loadData();
+  }
+}, [dispatch, isVisible]);
 
   useEffect(() => {
     if (socket) {
@@ -227,7 +235,7 @@ const NotificationComponent: React.FC<NotificationComponentProps> = ({ isVisible
                 data={notifications}
                 keyExtractor={(item) => {
                   if (item._id) return item._id;
-                  return Math.random().toString(); // Fallback
+                  return Math.random().toString();
                 }}
                 renderItem={renderNotification}
                 style={styles.notificationList}

@@ -18,7 +18,7 @@ import { AppDispatch, RootState } from "@/redux/store";
 import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
 import { getDriverById, updateDriver } from "@/redux/slices/AuthSlice";
 import { Driver, UpdateDriverData } from "@/types";
-import { createDriverFormData, createUpdateDriverFormData } from "@/utils/CreateDriverFormData";
+import { createUpdateDriverFormData } from "@/utils/CreateDriverFormData";
 
 export default function ProfilePage() {
     const dispatch = useDispatch<AppDispatch>();

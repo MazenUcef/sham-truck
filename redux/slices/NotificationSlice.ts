@@ -127,7 +127,6 @@ const notificationsSlice = createSlice({
             state.status = "idle";
         },
         addNotification: (state, action: PayloadAction<Notification>) => {
-            // For real-time notifications via WebSocket
             state.notifications.unshift(action.payload);
             if (!action.payload.is_read) {
                 state.unreadCount += 1;

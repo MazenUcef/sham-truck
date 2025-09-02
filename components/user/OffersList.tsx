@@ -7,6 +7,7 @@ import ConfirmationIcon from "@/assets/icons/Driver/ConfirmationIcon";
 import { acceptOffer } from "@/redux/slices/OfferSlice";
 import { fetchRouterOrders } from "@/redux/slices/OrderSlice";
 import HeadsetPhoneIcon from "@/assets/icons/Driver/HeadsetPhoneIcon";
+import { router } from "expo-router";
 
 interface OffersListProps {
   offers: any;
@@ -18,12 +19,17 @@ const OffersList: React.FC<OffersListProps> = ({ offers }) => {
   const { status } = useSelector((state: RootState) => state.offers);
   const [loadingOfferId, setLoadingOfferId] = useState<string | null>(null);
 
+  const displayedOffers = offers.some((o: any) => o.status === "Accepted")
+    ? offers.filter((o: any) => o.status === "Accepted")
+    : offers;
+
   const handleAcceptOffer = async (offer: any) => {
     setLoadingOfferId(offer.id);
     try {
       await dispatch(acceptOffer(offer.id)).unwrap();
       alert("تم قبول العرض بنجاح ✅");
       await dispatch(fetchRouterOrders());
+      router.push("/(root)/user/requests")
     } catch (error: any) {
       console.error("Accept offer failed:", error);
       alert("فشل في قبول العرض: " + (error || "خطأ غير معروف"));
@@ -33,6 +39,9 @@ const OffersList: React.FC<OffersListProps> = ({ offers }) => {
   };
 
   const renderItem = ({ item }: { item: any }) => {
+    console.log("item?.driver_id?.phoneNumber",item?.driver_id?.phoneNumber);
+    console.log("item?.driver_id?.phoneNumber",item?.driver_id?.fullName);
+    
     return (
       <View
         style={{
@@ -49,60 +58,57 @@ const OffersList: React.FC<OffersListProps> = ({ offers }) => {
           marginTop: 16,
         }}
       >
-        {
-          item.status === "Offered" ?
-            (
-              <TouchableOpacity
-                style={{
-                  width: 124,
-                  height: 42,
-                  borderRadius: 8,
-                  backgroundColor: "#0077B6",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-                onPress={() => handleAcceptOffer(item)}
-                disabled={status === "loading" && loadingOfferId === item._id}
-              >
-                {status === "loading" && loadingOfferId === item._id ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <>
-                    <Text
-                      style={{ fontWeight: "800", fontSize: 14, color: "white" }}
-                    >
-                      الموافقة
-                    </Text>
-                    <ConfirmationIcon width={24} height={24} />
-                  </>
-                )}
-              </TouchableOpacity>
-            )
-            :
-            (
-              <TouchableOpacity
-                onPress={() => Linking.openURL(`tel:${item?.driver_id?.phoneNumber}`)}
-                style={{
-                  width: 102,
-                  height: 42,
-                  borderRadius: 8,
-                  backgroundColor: "#00CD00",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+        {item.status === "Offered" ? (
+          <TouchableOpacity
+            style={{
+              width: 124,
+              height: 42,
+              borderRadius: 8,
+              backgroundColor: "#0077B6",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={() => handleAcceptOffer(item)}
+            disabled={status === "loading" && loadingOfferId === item._id}
+          >
+            {status === "loading" && loadingOfferId === item._id ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <>
                 <Text
                   style={{ fontWeight: "800", fontSize: 14, color: "white" }}
                 >
-                  اتصال
+                  الموافقة
                 </Text>
-                <HeadsetPhoneIcon width={24} height={24} />
+                <ConfirmationIcon width={24} height={24} />
+              </>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={() =>
+              Linking.openURL(`tel:${item?.driver_id?.phoneNumber}`)
+            }
+            style={{
+              width: 102,
+              height: 42,
+              borderRadius: 8,
+              backgroundColor: "#00CD00",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{ fontWeight: "800", fontSize: 14, color: "white" }}
+            >
+              اتصال
+            </Text>
+            <HeadsetPhoneIcon width={24} height={24} />
+          </TouchableOpacity>
+        )}
 
-              </TouchableOpacity>
-            )
-        }
         <View
           style={{
             flexDirection: "row",
@@ -128,35 +134,50 @@ const OffersList: React.FC<OffersListProps> = ({ offers }) => {
             </Text>
           </View>
           <Image
-            source={item.driver_id.photo ? { uri: item.driver_id.photo } : Images.userImg}
+            source={
+              item.driver_id.photo
+                ? { uri: item.driver_id.photo }
+                : Images.userImg
+            }
             style={{ width: 64, height: 64 }}
             resizeMode="cover"
           />
         </View>
       </View>
     );
-  }
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ marginTop: 48, alignSelf: "flex-end" }}>
         <Text style={{ fontWeight: "700", fontSize: 16 }}>
-          العروض المقدمة ({offers.length})
+          العروض المقدمة ({displayedOffers.length})
         </Text>
       </View>
 
       <FlatList
-        data={offers}
+        data={displayedOffers}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: 16 }}
         ListEmptyComponent={
-          <View style={{ justifyContent: "center", alignItems: "center", marginTop: 48 }}>
-            <Image
-              source={Images.emtyOffers}
-              resizeMode="contain"
-            />
-            <Text style={{ textAlign: "center", marginTop: 24, color: "#878A8E", fontWeight: 700, fontSize: 18 }}>
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              marginTop: 48,
+            }}
+          >
+            <Image source={Images.emtyOffers} resizeMode="contain" />
+            <Text
+              style={{
+                textAlign: "center",
+                marginTop: 24,
+                color: "#878A8E",
+                fontWeight: "700",
+                fontSize: 18,
+              }}
+            >
               لا يوجد عروض حتي الان
             </Text>
           </View>

@@ -1,6 +1,6 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
-import { router, useLocalSearchParams } from 'expo-router';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React from 'react'
+import { router } from 'expo-router';
 import { Controller, FieldError, useForm } from 'react-hook-form';
 import LeftIcon from '@/assets/icons/Auth/LeftIcon';
 import SendIcon from '@/assets/icons/Auth/SendIcon';

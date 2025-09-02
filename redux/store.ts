@@ -1,13 +1,23 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
-import vehicleTypesReducer from "./slices/VehicleTypesSlice"
-import authReducer from "./slices/AuthSlice"
-import ordersReducer from "./slices/OrderSlice"
-import offersReducer from "./slices/OfferSlice"
-import generalUserReducer from "./slices/GeneralSlice"
-import notificationsReducer from "./slices/NotificationSlice"
+import vehicleTypesReducer from "./slices/VehicleTypesSlice";
+import authReducer from "./slices/AuthSlice";
+import ordersReducer from "./slices/OrderSlice";
+import offersReducer from "./slices/OfferSlice";
+import generalUserReducer from "./slices/GeneralSlice";
+import notificationsReducer from "./slices/NotificationSlice";
 
+// Define the shape of your state
+export interface RootState {
+  auth: ReturnType<typeof authReducer>;
+  vehicleTypes: ReturnType<typeof vehicleTypesReducer>;
+  orders: ReturnType<typeof ordersReducer>;
+  offers: ReturnType<typeof offersReducer>;
+  generalUser: ReturnType<typeof generalUserReducer>;
+  notifications: ReturnType<typeof notificationsReducer>;
+  _persist?: any; // Add _persist to account for redux-persist
+}
 
 const persistConfig = {
   key: "root",
@@ -22,7 +32,7 @@ const rootReducer = combineReducers({
   orders: ordersReducer,
   offers: offersReducer,
   generalUser: generalUserReducer,
-  notifications:notificationsReducer
+  notifications: notificationsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -37,7 +47,6 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
-export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
 export default store;

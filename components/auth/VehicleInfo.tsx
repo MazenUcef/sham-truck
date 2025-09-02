@@ -25,12 +25,7 @@ export default function VehicleInfo() {
     dispatch(fetchVehicleTypes());
   }, []);
 
-  useEffect(() => {
-    if (error) {
-      Alert.alert('Error', error);
-      dispatch(clearError());
-    }
-  }, [error, dispatch]);
+
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();

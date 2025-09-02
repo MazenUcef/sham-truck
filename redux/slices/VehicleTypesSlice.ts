@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { apiService } from "@/config";
 import { VehicleType, VehicleTypesState } from "@/types";
+import { Alert } from "react-native";
 
 const initialState: VehicleTypesState = {
   vehicleTypes: [],
@@ -13,14 +14,24 @@ export const fetchVehicleTypes = createAsyncThunk<
   VehicleType[],
   void,
   { rejectValue: string }
->("vehicleTypes/fetchVehicleTypes", async (_, { rejectWithValue }) => {
+>("vehicleTypes/fetchVehicleTypes", async (_, { rejectWithValue, dispatch }) => {
   try {
     const response = await apiService.get<VehicleType[]>("/api/vehicle/types");
-
     return response;
   } catch (error: any) {
+    console.log("errors vehicle", error.message);
+
+    Alert.alert("Error", error.message, [
+      {
+        text: "OK",
+        onPress: () => dispatch(clearError()),
+      },
+    ]);
+
     return rejectWithValue(
-      error.response?.data?.message || error.message || "Failed to fetch vehicle types"
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch vehicle types"
     );
   }
 });
@@ -29,13 +40,24 @@ export const getVehicleTypeById = createAsyncThunk<
   VehicleType,
   string,
   { rejectValue: string }
->("vehicleTypes/getVehicleTypeById", async (id, { rejectWithValue }) => {
+>("vehicleTypes/getVehicleTypeById", async (id, { rejectWithValue, dispatch }) => {
   try {
     const response = await apiService.get<VehicleType>(`/api/vehicle/types/${id}`);
     return response;
   } catch (error: any) {
+    console.log("errors getVehicleTypeById", error.message);
+
+    Alert.alert("Error", error.message, [
+      {
+        text: "OK",
+        onPress: () => dispatch(clearError()),
+      },
+    ]);
+
     return rejectWithValue(
-      error.response?.data?.message || error.message || "Failed to fetch vehicle type"
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch vehicle type"
     );
   }
 });
@@ -53,15 +75,17 @@ const vehicleTypesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-
       .addCase(fetchVehicleTypes.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
-      .addCase(fetchVehicleTypes.fulfilled, (state, action: PayloadAction<VehicleType[]>) => {
-        state.status = "succeeded";
-        state.vehicleTypes = action.payload;
-      })
+      .addCase(
+        fetchVehicleTypes.fulfilled,
+        (state, action: PayloadAction<VehicleType[]>) => {
+          state.status = "succeeded";
+          state.vehicleTypes = action.payload;
+        }
+      )
       .addCase(fetchVehicleTypes.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to fetch vehicle types";
@@ -71,10 +95,13 @@ const vehicleTypesSlice = createSlice({
         state.status = "loading";
         state.error = null;
       })
-      .addCase(getVehicleTypeById.fulfilled, (state, action: PayloadAction<VehicleType>) => {
-        state.status = "succeeded";
-        state.vehicleType = action.payload;
-      })
+      .addCase(
+        getVehicleTypeById.fulfilled,
+        (state, action: PayloadAction<VehicleType>) => {
+          state.status = "succeeded";
+          state.vehicleType = action.payload;
+        }
+      )
       .addCase(getVehicleTypeById.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to fetch vehicle type";

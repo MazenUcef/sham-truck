@@ -175,6 +175,7 @@ const offersSlice = createSlice({
         state.offers = state.offers.map((offer) =>
           offer.id === action.payload.id ? action.payload : offer
         );
+        
       })
       .addCase(acceptOffer.rejected, (state, action) => {
         state.status = "failed";

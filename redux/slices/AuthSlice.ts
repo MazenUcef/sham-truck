@@ -42,7 +42,7 @@ export const signupDriver = createAsyncThunk<
     );
     return response;
   } catch (error: any) {
-    console.log("error",error);
+    console.log("signupDriver",error);
     
     return rejectWithValue(
       error.response?.data?.message || error.message || "Failed to sign up driver"

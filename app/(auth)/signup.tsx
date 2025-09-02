@@ -121,7 +121,9 @@ export default function Signup() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert('Error', error);
+      Alert.alert('Error auth', error);
+      console.log(error);
+      
     }
     if (isAuthenticated) {
       router.replace(`/(root)/${role}/home`);

@@ -17,7 +17,6 @@ export const createOrder = createAsyncThunk<
     vehicle_type: string;
     weight_or_volume: string;
     date_time_transport: string;
-    loading_time: string;
     notes?: string;
     type: string;
   },
@@ -71,6 +70,8 @@ export const fetchDriverOrders = createAsyncThunk<
 >("orders/fetchDriverOrders", async (_, { rejectWithValue }) => {
   try {
     const response = await apiService.get<{ message: string; orders: Order[] }>("/api/orders/driver/me");
+    console.log("fetchDriverOrders",response);
+    
     return response.orders;
   } catch (error: any) {
     return rejectWithValue(

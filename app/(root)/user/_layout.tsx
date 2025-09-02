@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Tabs, useSegments } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,7 +38,7 @@ export default function Layout() {
                             ) : (
                                 <View style={styles.activeIconContainer}>
                                     <UserIcon />
-                                    <Text style={styles.LabelText}>الرئيسية</Text>
+                                    <Text style={styles.LabelText}>الملف الشخصي</Text>
                                 </View>
                             )}
                         </View>
@@ -101,7 +101,7 @@ export default function Layout() {
 const styles = StyleSheet.create({
     tabBarContainer: {
         backgroundColor: "white",
-        height: 91,
+        height: Platform.OS === "android" ? 120 : 91,
         paddingTop: 5.5,
         paddingHorizontal: 20,
         position: "absolute",
@@ -110,6 +110,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+        paddingBottom: Platform.OS === "android" ? 80 : 0
     },
     activeIconContainer: {
         width: 121,

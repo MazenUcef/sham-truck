@@ -4,7 +4,7 @@ import {
     TouchableOpacity,
     View,
     StyleSheet,
-    Linking,
+    Linking
 } from "react-native";
 
 import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
@@ -14,19 +14,16 @@ import PositionIcon from "@/assets/icons/Driver/PositionIcon";
 import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import PendingIcon from "@/assets/icons/Driver/PendingIcon";
-import ExpiredIcon from "@/assets/icons/Driver/ExpiredIcon";
 import CompletedIcon from "@/assets/icons/Driver/CompleteIcon";
 import HeadsetPhoneIcon from "@/assets/icons/Driver/HeadsetPhoneIcon";
 import MoneyIcon from "@/assets/icons/Driver/MoneyIcon";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
 import { getGeneralUser } from "@/redux/slices/GeneralSlice";
 import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
 import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
 
 export const OfferCard = ({
-    offerId,
     from,
     to,
     weight,
@@ -34,10 +31,7 @@ export const OfferCard = ({
     type,
     status,
     price,
-    notes,
-    originalStatus,
     customerid,
-    vehicle_type,
 }: {
     offerId: string;
     from: string;
@@ -57,10 +51,6 @@ export const OfferCard = ({
     const { user: orderOwner } = useSelector((state: RootState) => state.generalUser)
 
     const dispatch = useDispatch<AppDispatch>()
-
-    useEffect(() => {
-        dispatch(getVehicleTypeById(vehicle_type))
-    }, [])
 
     useOfferSocket()
     useOrderSocket()
@@ -84,12 +74,6 @@ export const OfferCard = ({
         }
     }, [confirmationVisible]);
 
-    // useEffect(() => {
-    //     if (type) {
-    //         dispatch(getVehicleTypeById(type));
-    //     }
-    // }, [dispatch, user]);
-
 
 
     const handleViewDetails = () => {
@@ -102,8 +86,10 @@ export const OfferCard = ({
                 return <PendingIcon />;
             case 'Accepted':
                 return <CompletedIcon />;
-            case 'expired':
-                return <ExpiredIcon />;
+            case 'Rejected':
+                return <View style={{height:30,borderRadius:5,backgroundColor:"#7f0606ff",paddingVertical:4,paddingHorizontal:8,alignItems:"center",justifyContent:"center"}}>
+                    <Text style={{fontWeight:800,fontSize:12,color:"#dfdbdbff"}}>لم يتم قبول عرضك</Text>
+                </View>;
             default:
                 return <PendingIcon />;
         }
@@ -223,7 +209,6 @@ export const OfferCard = ({
     );
     return (
         <>
-            {/* Normal Card */}
             {renderCardContent(false, false)}
         </>
     );

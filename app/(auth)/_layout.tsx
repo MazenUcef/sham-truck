@@ -1,7 +1,5 @@
-import React, { useEffect } from 'react'
-import { Redirect, router, Stack } from 'expo-router'
-import { useSelector } from 'react-redux'
-import { RootState } from '@/redux/store'
+import React from 'react'
+import { Stack } from 'expo-router'
 
 export default function Layout() {
     return (

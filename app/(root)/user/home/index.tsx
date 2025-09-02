@@ -1,11 +1,10 @@
 import CenterPointIcon from '@/assets/icons/user/CenterPointIcon';
 import ClockIcon from '@/assets/icons/user/ClockIcon';
 import LocationIcon from '@/assets/icons/user/LocationIcon';
-import NotificationIcon from '@/assets/icons/user/NotificationIcon';
 import { Images } from '@/constants';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { format } from 'date-fns';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import ArrowToLeftIcon from '@/assets/icons/Auth/ArrowToLeftIcon';
@@ -13,14 +12,12 @@ import SteeringIcon from '@/assets/icons/Auth/SteeringIcon';
 import WeightIcon from '@/assets/icons/user/WeightIcon';
 import PlusIcon from '@/assets/icons/user/PlusIcon';
 import { OrderDriverCard } from '@/components/user/OrderDriverCard';
-import { router } from 'expo-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/redux/store';
-import { fetchVehicleTypes, clearError as clearVehicleError } from '@/redux/slices/VehicleTypesSlice';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { fetchVehicleTypes } from '@/redux/slices/VehicleTypesSlice';
+import { useSharedValue, withTiming } from 'react-native-reanimated';
 import { getUserById } from '@/redux/slices/AuthSlice';
 import { clearError, createOrder, fetchRouterOrders } from '@/redux/slices/OrderSlice';
-import NotificationComponent from '@/components/global/NotificationComponent';
 import NotificationIconWithModal from '@/components/global/NotificatioWithModal';
 
 export default function Home() {
@@ -39,7 +36,6 @@ export default function Home() {
       dateNtime: new Date(),
       vehicleType: '',
       vehicleTypeId: '',
-      loadingTime: '',
       notes: '',
     },
   });
@@ -135,7 +131,6 @@ export default function Home() {
         vehicle_type: data.vehicleTypeId,
         weight_or_volume: `${data.weight} kg`,
         date_time_transport: data.dateNtime.toISOString(),
-        loading_time: data.loadingTime,
         notes: data.notes,
         type: data.cargoType,
       };
@@ -238,7 +233,7 @@ export default function Home() {
             </View>
           ) : null}
 
-          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: latestOrder ? 10 : 0, paddingTop: 20, paddingBottom: 100 }}>
+          <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16, marginTop: latestOrder ? 10 : 0, paddingTop: 20, paddingBottom: Platform.OS === "android" ?  130 : 100 }}>
             <Text style={{ fontWeight: '700', fontSize: 18, lineHeight: 24, alignSelf: "flex-end" }}>إنشاء طلب جديد</Text>
 
             <View style={{ marginTop: 24 }}>
@@ -368,36 +363,6 @@ export default function Home() {
                       </Text>
                     )}
                   </View>
-                </View>
-              </View>
-
-              {/* Loading Time */}
-              <View style={{ marginTop: 20 }}>
-                <Text style={{ fontWeight: '500', fontSize: 14, lineHeight: 20, alignSelf: "flex-end" }}>مدة التحميل</Text>
-                <View style={{ marginTop: 8 }}>
-                  <View style={{ height: 46, justifyContent: "flex-end", borderRadius: 8, backgroundColor: "#F4F4F4CC", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, gap: 7 }}>
-                    <Controller
-                      control={control}
-                      rules={{ required: 'مدة التحميل مطلوبة' }}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <TextInput
-                          style={{ flex: 1, textAlign: 'right' }}
-                          placeholderTextColor={"#878A8E"}
-                          placeholder='أدخل مدة التحميل (مثال: 2 ساعات)'
-                          onBlur={onBlur}
-                          onChangeText={onChange}
-                          value={value}
-                        />
-                      )}
-                      name="loadingTime"
-                    />
-                    <ClockIcon />
-                  </View>
-                  {errors.loadingTime && (
-                    <Text style={{ color: 'red', textAlign: 'right', fontSize: 10, marginTop: 2 }}>
-                      {getErrorMessage(errors.loadingTime)}
-                    </Text>
-                  )}
                 </View>
               </View>
 

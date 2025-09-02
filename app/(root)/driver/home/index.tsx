@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Platform,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -31,6 +32,8 @@ import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
 export default function Home() {
   const { user } = useSelector((state: RootState) => state.auth);
   const { orders, status: ordersStatus, error: ordersError } = useSelector((state: RootState) => state.orders);
+  console.log("orders",orders);
+  
   const dispatch = useDispatch<AppDispatch>();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCity, setSelectedCity] = useState("حلب");
@@ -294,7 +297,7 @@ export default function Home() {
               <OrderCard
                 key={item.id}
                 type={item.type}
-                vehicle={item.vehicle_type.category}
+                vehicle={item.vehicle_type?.type}
                 from={item.from_location}
                 to={item.to_location}
                 weight={item.weight_or_volume}
@@ -310,7 +313,7 @@ export default function Home() {
             }
             refreshing={ordersStatus === "loading"}
             onRefresh={fetchOrders}
-            style={{ marginTop: 24, marginBottom: 65 }}
+            style={{ marginTop: 24, marginBottom: Platform.OS === "android" ?  90 : 65 }}
           />
         )}
       </View>

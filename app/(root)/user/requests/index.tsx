@@ -1,4 +1,4 @@
-import { OfferUserCard } from "@/components/user/OfferuserCard";
+import { OfferUserCard } from "@/components/user/OfferUserCard";
 import { clearError, fetchRouterOrders } from "@/redux/slices/OrderSlice";
 import { AppDispatch, RootState } from "@/redux/store";
 import { Order } from "@/types";
@@ -125,7 +125,7 @@ const Requests = () => {
 
     return (
       <OfferUserCard
-        type={item.vehicle_type?.category || "غير محدد"} // Use vehicle_type.category instead of item.type
+        type={item.vehicle_type?.category || "غير محدد"}
         from={item.from_location || "غير محدد"}
         to={item.to_location || "غير محدد"}
         weight={item.weight_or_volume || "غير محدد"}

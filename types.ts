@@ -134,10 +134,10 @@ export interface Order {
   vehicle_type: {
     _id: string;
     category: string;
+    type: string;
   };
   weight_or_volume: string;
   date_time_transport: string;
-  loading_time: string;
   notes?: string;
   type: string;
   status: string;

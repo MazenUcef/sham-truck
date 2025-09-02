@@ -10,8 +10,6 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import LockIcon from "@/assets/icons/Auth/LockIcon";
-import * as ImagePicker from "expo-image-picker";
 import IdentityCardIcon from "@/assets/icons/Auth/IdentityCard";
 import SteeringIcon from "@/assets/icons/Auth/SteeringIcon";
 import PhoneIcon from "@/assets/icons/Auth/PhoneIcon";
@@ -20,10 +18,10 @@ import RightIcon from "@/assets/icons/Driver/RightIcon";
 import { router } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { fetchVehicleTypes, getVehicleTypeById } from "@/redux/slices/VehicleTypesSlice";
-import { Driver, UpdateDriverData } from "@/types";
+import { fetchVehicleTypes } from "@/redux/slices/VehicleTypesSlice";
+import { UpdateDriverData } from "@/types";
 import { createUpdateDriverFormData } from "@/utils/CreateDriverFormData";
-import { getDriverById, updateDriver } from "@/redux/slices/AuthSlice";
+import { updateDriver } from "@/redux/slices/AuthSlice";
 import { fetchDriverOrders } from "@/redux/slices/OrderSlice";
 
 export default function VehicleInfo() {
@@ -50,7 +48,6 @@ export default function VehicleInfo() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<"عادية" | "مغلقة" | "مبردة">("عادية");
-  const [vehicleImage, setVehicleImage] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchVehicleTypes());
@@ -62,32 +59,11 @@ export default function VehicleInfo() {
       setValue("vehicleNumber", user.vehicleNumber);
       setValue("vehicleTypeId", user.vehicleType?._id || "");
       setValue("vehicleType", user.vehicleType?.type || "");
-      setVehicleImage(user.photo || null);
-      // Set activeTab based on user's vehicleType category
       if (user.vehicleType?.category) {
         setActiveTab(user.vehicleType.category as "عادية" | "مغلقة" | "مبردة");
       }
     }
   }, [user, setValue]);
-
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets[0].uri) {
-      const uri = result.assets[0].uri;
-      setVehicleImage(uri);
-      // Convert URI to File for FormData
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const file = new File([blob], `vehicle_photo_${Date.now()}.jpg`, { type: blob.type });
-      setValue("vehiclePhoto", file);
-    }
-  };
 
   const getErrorMessage = (error: FieldError | undefined): string | null => {
     return error ? error.message || "هذا الحقل مطلوب" : null;
@@ -110,7 +86,6 @@ export default function VehicleInfo() {
       return;
     }
 
-    // Normalize phone number (add +20 if not present)
     let normalizedPhone = data.phone;
     if (!normalizedPhone.startsWith("+20")) {
       normalizedPhone = `+20${normalizedPhone.replace(/^0/, "")}`;
@@ -125,8 +100,8 @@ export default function VehicleInfo() {
     try {
       const formData = createUpdateDriverFormData(userData);
       await dispatch(updateDriver(formData)).unwrap();
-      await dispatch(getDriverById()).unwrap();
       await dispatch(fetchDriverOrders()).unwrap();
+
       alert("تم حفظ التغييرات بنجاح ✅");
     } catch (error: any) {
       console.error("Update failed:", error);
@@ -398,113 +373,113 @@ export default function VehicleInfo() {
 }
 
 const styles = StyleSheet.create({
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-        width: '80%',
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
-    },
-    tabContainer: {
-        width: '100%',
-    },
-    tab: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 8,
-    },
-    activeTab: {
-        backgroundColor: '#0077B6',
-    },
-    tabText: {
-        color: '#878A8E',
-        fontWeight: '600',
-        fontSize: 14,
-        textAlign: 'right',
-    },
-    activeTabText: {
-        color: 'white',
-    },
-    vehicleTypesContainer: {
-        marginVertical: 10,
-        width: '100%',
-    },
-    vehicleTypeItem: {
-        height: 76,
-        width: '100%',
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        gap: 10,
-        flexDirection: "row",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "#E4E4E4",
-        borderRadius: 8,
-        marginBottom: 12
-    },
-    closeButton: {
-        padding: 10,
-        borderRadius: 8,
-        alignItems: 'center',
-        width: '100%',
-        borderWidth: 1,
-        borderColor: '#878A8E',
-        marginTop: 20,
-    },
-    closeButtonText: {
-        color: '#878A8E',
-        fontWeight: '500',
-        textAlign: 'center',
-        fontSize: 16
-    },
-    inputWrapper: {
-        marginTop: 16,
-        height: 46,
-        justifyContent: "flex-end",
-        borderRadius: 8,
-        backgroundColor: "#F4F4F4CC",
-        width: "100%",
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 10,
-    },
-    inputInner: {
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 7,
-    },
-    textInput: {
-        flex: 1,
-        textAlign: "right",
-    },
-    errorText: {
-        color: "red",
-        textAlign: "right",
-        fontSize: 10,
-        marginTop: 2,
-    },
-    submitButton: {
-        height: 46,
-        marginTop: 32,
-        borderRadius: 8,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-        borderWidth: 1,
-        borderColor: "#E4E4E4",
-        backgroundColor: "#F9844A",
-    },
-    submitText: {
-        fontWeight: "800",
-        fontSize: 12,
-        color: "white",
-    },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+  },
+  tabContainer: {
+    width: '100%',
+  },
+  tab: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  activeTab: {
+    backgroundColor: '#0077B6',
+  },
+  tabText: {
+    color: '#878A8E',
+    fontWeight: '600',
+    fontSize: 14,
+    textAlign: 'right',
+  },
+  activeTabText: {
+    color: 'white',
+  },
+  vehicleTypesContainer: {
+    marginVertical: 10,
+    width: '100%',
+  },
+  vehicleTypeItem: {
+    height: 76,
+    width: '100%',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    gap: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E4E4E4",
+    borderRadius: 8,
+    marginBottom: 12
+  },
+  closeButton: {
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#878A8E',
+    marginTop: 20,
+  },
+  closeButtonText: {
+    color: '#878A8E',
+    fontWeight: '500',
+    textAlign: 'center',
+    fontSize: 16
+  },
+  inputWrapper: {
+    marginTop: 16,
+    height: 46,
+    justifyContent: "flex-end",
+    borderRadius: 8,
+    backgroundColor: "#F4F4F4CC",
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  inputInner: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+  },
+  textInput: {
+    flex: 1,
+    textAlign: "right",
+  },
+  errorText: {
+    color: "red",
+    textAlign: "right",
+    fontSize: 10,
+    marginTop: 2,
+  },
+  submitButton: {
+    height: 46,
+    marginTop: 32,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#E4E4E4",
+    backgroundColor: "#F9844A",
+  },
+  submitText: {
+    fontWeight: "800",
+    fontSize: 12,
+    color: "white",
+  },
 });

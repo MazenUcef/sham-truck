@@ -1,18 +1,12 @@
-import NotificationIcon from "@/assets/icons/user/NotificationIcon";
-import React, { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import React from "react";
 import {
   Image,
-  Modal,
-  FlatList,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { db as database } from "@/api/config";
-import { Images, mockOffers, mockOrders, SYRIAN_CITIES } from "@/constants";
+import { Images } from "@/constants";
 import { router } from "expo-router";
 import UserIcon from "@/assets/icons/Driver/UserIcon";
 import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
@@ -29,11 +23,6 @@ import { logout } from "@/redux/slices/AuthSlice";
 export default function Profile() {
   const { user } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch<AppDispatch>()
-  // useEffect(() => {
-  //   if (user && user.id ) {
-  //     dispatch(getUserById({ id: user.id, role: "user" }));
-  //   }
-  // }, [dispatch, user]);
 
   return (
     <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 84 }}>
@@ -114,88 +103,6 @@ export default function Profile() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContent: {
-    width: "80%",
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-  },
-  tabContainer: {
-    width: "100%",
-  },
-  tab: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 8,
-  },
-  activeTab: {
-    backgroundColor: "#0077B6",
-  },
-  tabText: {
-    color: "#878A8E",
-    fontWeight: "600",
-    fontSize: 14,
-    textAlign: "right",
-  },
-  activeTabText: {
-    color: "white",
-  },
-  vehicleTypesContainer: {
-    marginVertical: 10,
-    width: "100%",
-  },
-  vehicleTypeItem: {
-    height: 76,
-    width: "100%",
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    gap: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E4E4E4",
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  closeButton: {
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#878A8E",
-  },
-  closeButtonText: {
-    color: "#878A8E",
-    fontWeight: "500",
-    textAlign: "center",
-    fontSize: 16,
-  },
-  signInButton: {
-    marginTop: 24,
-    height: 46,
-    backgroundColor: "#F9844A",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 5,
-  },
-  signInButtonText: {
-    fontWeight: "800",
-    fontSize: 12,
-    color: "white",
-  },
-});
 
 
 

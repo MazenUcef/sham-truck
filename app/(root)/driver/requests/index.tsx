@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Image,
   FlatList,
-  StyleSheet,
   Text,
   View,
   Animated,
@@ -11,7 +10,7 @@ import { Images } from "@/constants";
 import { OfferCard } from "@/components/driver/OfferCard";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { clearOffers, fetchDriverOffers } from "@/redux/slices/OfferSlice";
+import { fetchDriverOffers } from "@/redux/slices/OfferSlice";
 import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
 
 const SkeletonLoader = ({ style }: { style?: any }) => {
@@ -123,6 +122,7 @@ export default function Requests() {
   const [isLoading, setIsLoading] = useState(true);
   const { vehicleType } = useSelector((state: RootState) => state.vehicleTypes);
 
+console.log("offffferererer",offers);
 
   useOfferSocket();
   
