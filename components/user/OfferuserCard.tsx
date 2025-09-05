@@ -1,20 +1,20 @@
-import React from "react";
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
 import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
 import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
 import DashedDividerIcon from "@/assets/icons/Driver/DashedDivider";
 import PositionIcon from "@/assets/icons/Driver/PositionIcon";
 import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
-import ProductIcon from "@/assets/icons/user/OneProcuct";
-import { router } from "expo-router";
 import ConfirmationIcon from "@/assets/icons/user/ConfirmationIcon";
+import ProductIcon from "@/assets/icons/user/OneProcuct";
 import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
 import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
+import { router } from "expo-router";
+import React from "react";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export const OfferUserCard = ({
   from,
@@ -33,8 +33,8 @@ export const OfferUserCard = ({
   orderId: string;
   status: string;
 }) => {
-      useOfferSocket()
-      useOrderSocket()
+  useOfferSocket()
+  useOrderSocket()
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
       style={{
