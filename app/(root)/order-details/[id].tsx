@@ -1,31 +1,31 @@
-import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Alert,
-} from "react-native";
-import { useDispatch, useSelector } from "react-redux";
-import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
+import LeftIcon from "@/assets/icons/Auth/LeftIcon";
 import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
 import DashedDividerIcon from "@/assets/icons/Driver/DashedDivider";
-import PositionIcon from "@/assets/icons/Driver/PositionIcon";
 import TruckIconSmall from "@/assets/icons/Driver/TruckIconSmall";
-import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
 import TypeDFurnIcon from "@/assets/icons/Driver/TypeFurnIcon";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { AppDispatch, RootState } from "@/redux/store";
-import SelectedOfferDetails from "@/components/user/SelectedOfferDetails";
-import OffersList from "@/components/user/OffersList";
+import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
+import ThemedText from "@/components/ui/ThemedText";
 import DeleteConfirmationModal from "@/components/user/DeleteConfirmationModal";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { Offer, Order } from "@/types";
-import LeftIcon from "@/assets/icons/Auth/LeftIcon";
-import { clearError as clearOrderError, getOrderById } from "@/redux/slices/OrderSlice";
+import OffersList from "@/components/user/OffersList";
+import SelectedOfferDetails from "@/components/user/SelectedOfferDetails";
 import { clearError, fetchOrderOffers } from "@/redux/slices/OfferSlice";
+import { clearError as clearOrderError, getOrderById } from "@/redux/slices/OrderSlice";
+import { AppDispatch, RootState } from "@/redux/store";
 import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
 import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
+import { Offer, Order } from "@/types";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import { LocateFixed, MapPin } from 'lucide-react-native';
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { useDispatch, useSelector } from "react-redux";
+
 
 const OrderDetails = () => {
   const { id } = useLocalSearchParams();
@@ -40,7 +40,7 @@ const OrderDetails = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const { status: orderStatus, error: orderError ,orders ,order:getByIdoRDER} = useSelector((state: RootState) => state.orders);
+  const { status: orderStatus, error: orderError, orders, order: getByIdoRDER } = useSelector((state: RootState) => state.orders);
   const { status: offersStatus, error: offersError, offers: fetchedOffers } = useSelector((state: RootState) => state.offers);
   useOfferSocket();
   useOrderSocket()
@@ -59,7 +59,7 @@ const OrderDetails = () => {
     };
     fetchOrderDetails();
   }, [id, dispatch]);
-  
+
   const handleDeleteOrder = async () => {
     if (typeof id === "string") {
       try {
@@ -232,23 +232,23 @@ const OrderDetails = () => {
           marginBottom: 40,
           flexDirection: "row",
           alignSelf: "flex-start",
-          gap:105,
+          gap: 105,
           marginLeft: 29,
         }}
       >
         <TouchableOpacity onPress={() => router.back()}>
           <LeftIcon />
         </TouchableOpacity>
-        <Text
+        <ThemedText
+          weight="bold"
           style={{
-            fontWeight: "700",
             fontSize: 18,
             lineHeight: 24,
             color: "white",
           }}
         >
           تفاصيل الطلب
-        </Text>
+        </ThemedText>
       </View>
 
       <View
@@ -277,7 +277,7 @@ const OrderDetails = () => {
             >
               <View />
               <View>
-                <Text style={{ fontWeight: "700", fontSize: 16 }}>تفاصيل رحلة</Text>
+                <ThemedText weight="bold" style={{ fontSize: 16 }}>تفاصيل رحلة</ThemedText>
               </View>
             </View>
             <View
@@ -297,17 +297,23 @@ const OrderDetails = () => {
                 <View
                   style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
                 >
-                  <Text style={styles.text}>{getByIdoRDER?.from_location}</Text>
-                  <CenterPointIconSmall />
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    <ThemedText weight="semiBold" style={styles.text}>{getByIdoRDER?.from_location}</ThemedText>
+                    <ThemedText weight="bold" style={[styles.text, { color: 'blue' }]}>من : </ThemedText>
+                  </View>
+                  <LocateFixed stroke={'#999'} width={22} height={22} />
                 </View>
-                <View style={{ marginRight: 7.2 }}>
+                <View style={{ marginRight: 11 }}>
                   <DashedDividerIcon />
                 </View>
                 <View
                   style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
                 >
-                  <Text style={styles.text}>{getByIdoRDER?.to_location}</Text>
-                  <PositionIcon />
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    <ThemedText weight="semiBold" style={styles.text}>{getByIdoRDER?.to_location}</ThemedText>
+                    <ThemedText weight="bold" style={[styles.text, { color: 'red' }]}>الي : </ThemedText>
+                  </View>
+                  <MapPin stroke={'#999'} width={22} height={22} />
                 </View>
               </View>
             </View>
@@ -315,31 +321,31 @@ const OrderDetails = () => {
               style={{ width: "100%", backgroundColor: "#E4E4E4", height: 1 }}
             />
             <View style={{ marginVertical: 16, alignSelf: "flex-end" }}>
-              <Text style={{ fontWeight: "700", fontSize: 16 }}>معلومات الرحلة</Text>
+              <ThemedText weight="bold" style={{ fontSize: 16 }}>معلومات الرحلة</ThemedText>
             </View>
             <View style={styles.rowBetween}>
-              <View style={{ flexDirection: "row", gap: 12 }}>
-                <Text style={styles.text}>{`${getByIdoRDER?.weight_or_volume} طن`}</Text>
+              <View style={{ flexDirection: "row", gap: 12, alignContent: "center" }}>
+                <ThemedText style={styles.text}>{`${getByIdoRDER?.weight_or_volume}`}</ThemedText>
                 <WeightFurnIcon />
               </View>
               <View style={{ flexDirection: "row", gap: 12 }}>
-                <Text style={styles.text}>
+                <ThemedText style={styles.text}>
                   {displayDate || "غير محدد"}
-                </Text>
+                </ThemedText>
                 <ClockIconMini />
               </View>
             </View>
 
             <View style={[styles.rowBetween, { marginTop: 16 }]}>
               <View style={{ flexDirection: "row", gap: 12 }}>
-                <Text style={styles.text}>
-                  { getByIdoRDER?.vehicle_type.category
+                <ThemedText style={styles.text}>
+                  {getByIdoRDER?.vehicle_type.category
                     || "غير محدد"}
-                </Text>
+                </ThemedText>
                 <TruckIconSmall width={16} height={16} color={"gray"} />
               </View>
               <View style={{ flexDirection: "row", gap: 12 }}>
-                <Text style={styles.text}>{getByIdoRDER?.type || "غير محدد"}</Text>
+                <ThemedText style={styles.text}>{getByIdoRDER?.type || "غير محدد"}</ThemedText>
                 <TypeDFurnIcon />
               </View>
             </View>
@@ -388,7 +394,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#878A8E",
   },
-  text: { fontWeight: "500", fontSize: 14, color: "#11171A" },
+  text: { fontSize: 14, color: "#11171A" },
   rowBetween: {
     flexDirection: "row",
     justifyContent: "space-between",

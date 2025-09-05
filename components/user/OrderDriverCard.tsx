@@ -1,20 +1,17 @@
-import React from "react";
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
-import CenterPointIconSmall from "@/assets/icons/Driver/CenterPointIconSmall";
-import ClockIconMini from "@/assets/icons/Driver/ClockIconMini";
 import DashedDividerIcon from "@/assets/icons/Driver/DashedDivider";
-import PositionIcon from "@/assets/icons/Driver/PositionIcon";
-import WeightFurnIcon from "@/assets/icons/Driver/WeightFurnIcon";
-import ProductIcon from "@/assets/icons/user/OneProcuct";
-import { router } from "expo-router";
 import ConfirmationIcon from "@/assets/icons/user/ConfirmationIcon";
+import ProductIcon from "@/assets/icons/user/OneProcuct";
 import { useOfferSocket } from "@/sockets/sockets/useOfferSocket";
 import { useOrderSocket } from "@/sockets/sockets/useOrderSocket";
+import { router } from "expo-router";
+import { Clock, LocateFixed, MapPin, Weight } from "lucide-react-native";
+import React from "react";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View
+} from "react-native";
+import ThemedText from "../ui/ThemedText";
 
 
 
@@ -37,8 +34,8 @@ export const OrderDriverCard = ({
   orderId: string;
   status: string
 }) => {
-      useOfferSocket()
-      useOrderSocket()
+  useOfferSocket()
+  useOrderSocket()
   const renderCardContent = (showExtraRow = false, showForm = false) => (
     <View
       style={{
@@ -67,39 +64,45 @@ export const OrderDriverCard = ({
           )
           :
           (
-          <ConfirmationIcon />
-        )
+            <ConfirmationIcon />
+          )
         }
         <View
           style={{
-            flexDirection: "column",
             alignItems: "flex-end",
+            justifyContent: 'center',
             marginBottom: 17,
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <Text style={styles.text}>{from}</Text>
-            <CenterPointIconSmall />
+            <View style={{ flexDirection: 'row', gap: 4 }}>
+              <ThemedText weight="semiBold" style={styles.text}>{from}</ThemedText>
+              <ThemedText weight="bold" style={[styles.text, { color: 'blue' }]}>من : </ThemedText>
+            </View>
+            <LocateFixed stroke={'#999'} width={22} height={22} />
           </View>
-          <View style={{ marginRight: 7.2 }}>
+          <View style={{ marginRight: 11 }}>
             <DashedDividerIcon />
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <Text style={styles.text}>{to}</Text>
-            <PositionIcon />
+            <View style={{ flexDirection: 'row', gap: 4 }}>
+              <ThemedText weight="semiBold" style={styles.text}>{to}</ThemedText>
+              <ThemedText weight="bold" style={[styles.text, { color: 'red' }]}>الي : </ThemedText>
+            </View>
+            <MapPin stroke={'#999'} width={22} height={22} />
           </View>
         </View>
       </View>
 
       {/* Weight + Date */}
       <View style={styles.rowBetween}>
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <Text style={styles.text}>{weight}</Text>
-          <WeightFurnIcon />
+        <View style={{ flexDirection: "row", gap: 12, alignItems: 'center' }}>
+          <ThemedText style={styles.text}>{weight}</ThemedText>
+          <Weight stroke={'#999'} width={20} height={20} />
         </View>
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <Text style={styles.text}>{dateTime}</Text>
-          <ClockIconMini />
+        <View style={{ flexDirection: "row", gap: 12, alignItems: 'center' }}>
+          <ThemedText style={styles.text}>{dateTime}</ThemedText>
+          <Clock stroke={'#999'} width={20} height={20} />
         </View>
       </View>
 
@@ -109,7 +112,7 @@ export const OrderDriverCard = ({
           router.push(`/(root)/order-details/${orderId}`)
         }
       >
-        <Text style={styles.buttonOutlineText}>عرض التفاصيل</Text>
+        <ThemedText weight="bold" style={styles.buttonOutlineText}>عرض التفاصيل</ThemedText>
       </TouchableOpacity>
     </View>
   );
@@ -140,7 +143,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonOutlineText: {
-    fontWeight: "800",
     fontSize: 14,
     color: "white",
   },

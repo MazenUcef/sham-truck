@@ -1,5 +1,4 @@
 import GoogleIcon from '@/assets/icons/Auth/GoogleIcon';
-import LockIcon from '@/assets/icons/Auth/LockIcon';
 import LogoutIcon from '@/assets/icons/Auth/LogoutIcon';
 import MessageIcon from '@/assets/icons/Auth/MessageIcon';
 import { getFontFamily } from '@/constants/fonts';
@@ -10,6 +9,7 @@ import { useState } from 'react';
 import { Controller, FieldError } from 'react-hook-form';
 import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Button from '../ui/Button';
+import PasswordInput from '../ui/PasswordInput';
 import ThemedText from '../ui/ThemedText';
 import ThemedTextInput from '../ui/ThemedTextInput';
 
@@ -98,7 +98,7 @@ export default function SignInForm({
                 minLength: { value: 6, message: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' }
               }}
               render={({ field: { onChange, onBlur, value } }) => (
-                <ThemedTextInput
+                <PasswordInput
                   style={{ flex: 1, textAlign: 'right' }}
                   placeholderTextColor={"#878A8E"}
                   placeholder='كلمة المرور'
@@ -111,7 +111,7 @@ export default function SignInForm({
               )}
               name="password"
             />
-            <LockIcon />
+            {/* <LockIcon /> */}
           </View>
         </View>
         {errors.password && (
