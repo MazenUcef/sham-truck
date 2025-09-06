@@ -1,27 +1,21 @@
-import NotificationIcon from "@/assets/icons/user/NotificationIcon";
-import React, { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import {
-  Image,
-  Modal,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { db as database } from "@/api/config";
-import { Images, mockOffers, mockOrders, SYRIAN_CITIES } from "@/constants";
-import { router } from "expo-router";
-import UserIcon from "@/assets/icons/Driver/UserIcon";
-import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
-import PolicyIcon from "@/assets/icons/Driver/PolicyIcon";
 import HelpIcon from "@/assets/icons/Driver/HelpIcon";
 import LogoutIcon from "@/assets/icons/Driver/LogoutIcon";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
+import PolicyIcon from "@/assets/icons/Driver/PolicyIcon";
+import ToRightIcon from "@/assets/icons/Driver/ToRightIcon";
+import UserIcon from "@/assets/icons/Driver/UserIcon";
+import { Images } from "@/constants";
 import { logout } from "@/redux/slices/AuthSlice";
+import { AppDispatch, RootState } from "@/redux/store";
+import { router } from "expo-router";
+import React from "react";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
 
 
@@ -78,6 +72,7 @@ export default function Profile() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            onPress={() => router.push("/(root)/privacy")}
             style={{ height: 66, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", borderWidth: 1, borderColor: "#E4E4E4", paddingVertical: 20, paddingHorizontal: 16 }}
           >
             <ToRightIcon />
