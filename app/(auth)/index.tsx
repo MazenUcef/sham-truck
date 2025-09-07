@@ -30,7 +30,7 @@ export default function Auth() {
 
 
   return (
-    <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 300 }}>
+    <View style={{ backgroundColor: "#F9844A", flex: 1, paddingTop: 236 }}>
       <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 20 }}>
         <Image
           source={Images.logo}

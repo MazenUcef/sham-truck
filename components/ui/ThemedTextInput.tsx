@@ -1,6 +1,7 @@
 import { getFontFamily } from '@/constants/fonts';
 import React, { ReactNode } from 'react';
-import { StyleProp, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import ThemedText from './ThemedText';
 
 export type FontWeightKey = 'extraLight' | 'light' | 'regular' | 'medium' | 'semiBold' | 'bold' | 'extraBold' | 'black';
 
@@ -38,9 +39,9 @@ export const ThemedTextInput: React.FC<ThemedTextInputProps> = ({
       />
       {rightIcon ? <View style={styles.iconRight}>{rightIcon}</View> : null}
       {!!errorText && (
-        <Text style={styles.errorText} numberOfLines={2}>
+        <ThemedText style={styles.errorText} numberOfLines={2}>
           {errorText}
-        </Text>
+        </ThemedText>
       )}
     </View>
   );
@@ -48,7 +49,7 @@ export const ThemedTextInput: React.FC<ThemedTextInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    // width: '100%',
   },
   disabledContainer: {
     opacity: 0.6,

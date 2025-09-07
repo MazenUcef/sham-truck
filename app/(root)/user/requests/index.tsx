@@ -1,4 +1,4 @@
-import { OfferUserCard } from "@/components/user/OfferUserCard";
+import { OfferUserCard } from "@/components/user/OfferuserCard";
 import { clearError, fetchRouterOrders } from "@/redux/slices/OrderSlice";
 import { AppDispatch, RootState } from "@/redux/store";
 import { Order } from "@/types";
